@@ -64,7 +64,7 @@ class DayOfMonthFieldTest extends TestCase
         $f = new DayOfMonthField();
         $this->assertSame([], $f->getRangeForExpression('2018-03-13 04:05:00', 5));
         $this->assertSame([], $f->getRangeForExpression('2018/03/13 04:05:00', 5));
-        $this->assertSame(['3', 4, 5], $f->getRangeForExpression('3-5-15', 15));
+        $this->assertSame([3, 4, 5], $f->getRangeForExpression('3-5-15', 15));
     }
 
     /**
