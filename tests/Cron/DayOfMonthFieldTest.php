@@ -16,14 +16,14 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testValidatesField()
     {
-        $f = new DayOfMonthField();
-        $this->assertTrue($f->validate('1'));
-        $this->assertTrue($f->validate('*'));
-        $this->assertTrue($f->validate('L'));
-        $this->assertTrue($f->validate('5W'));
-        $this->assertTrue($f->validate('01'));
-        $this->assertFalse($f->validate('5W,L'));
-        $this->assertFalse($f->validate('1.'));
+        $dayOfMonthField = new DayOfMonthField();
+        $this->assertTrue($dayOfMonthField->validate('1'));
+        $this->assertTrue($dayOfMonthField->validate('*'));
+        $this->assertTrue($dayOfMonthField->validate('L'));
+        $this->assertTrue($dayOfMonthField->validate('5W'));
+        $this->assertTrue($dayOfMonthField->validate('01'));
+        $this->assertFalse($dayOfMonthField->validate('5W,L'));
+        $this->assertFalse($dayOfMonthField->validate('1.'));
     }
 
     /**
@@ -31,8 +31,8 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testChecksIfSatisfied()
     {
-        $f = new DayOfMonthField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime(), '?'));
+        $dayOfMonthField = new DayOfMonthField();
+        $this->assertTrue($dayOfMonthField->isSatisfiedBy(new DateTime(), '?'));
     }
 
     /**
@@ -42,8 +42,8 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testDateWithInvalidStartShouldThrowOutOfRangeException()
     {
-        $f = new DayOfMonthField();
-        $f->isSatisfiedBy(new DateTime(), '2018/03/02');
+        $dayOfMonthField = new DayOfMonthField();
+        $dayOfMonthField->isSatisfiedBy(new DateTime(), '2018/03/02');
     }
 
     /**
@@ -53,8 +53,8 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testDateWithInvalidEndShouldThrowOutOfRangeException()
     {
-        $f = new DayOfMonthField();
-        $f->isSatisfiedBy(new DateTime(), '7-2018/04:05:00');
+        $dayOfMonthField = new DayOfMonthField();
+        $dayOfMonthField->isSatisfiedBy(new DateTime(), '7-2018/04:05:00');
     }
 
     /**
@@ -62,10 +62,10 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testGetRangeForExpression()
     {
-        $f = new DayOfMonthField();
-        $this->assertSame([], $f->getRangeForExpression('2018-03-13 04:05:00', 5));
-        $this->assertSame([], $f->getRangeForExpression('2018/03/13 04:05:00', 5));
-        $this->assertSame([3, 4, 5], $f->getRangeForExpression('3-5-15', 15));
+        $dayOfMonthField = new DayOfMonthField();
+        $this->assertSame([], $dayOfMonthField->getRangeForExpression('2018-03-13 04:05:00', 5));
+        $this->assertSame([], $dayOfMonthField->getRangeForExpression('2018/03/13 04:05:00', 5));
+        $this->assertSame([3, 4, 5], $dayOfMonthField->getRangeForExpression('3-5-15', 15));
     }
 
     /**
@@ -73,8 +73,8 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testValidateShouldReturnTrue()
     {
-        $f = new DayOfMonthField();
-        $this->assertTrue($f->validate('2,12'));
+        $dayOfMonthField = new DayOfMonthField();
+        $this->assertTrue($dayOfMonthField->validate('2,12'));
     }
 
     /**
@@ -82,8 +82,8 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testIsSatipsfiedByOnLValue()
     {
-        $f = new DayOfMonthField();
-        $this->assertFalse($f->isSatisfiedBy(new DateTime, 'L'));
+        $dayOfMonthField = new DayOfMonthField();
+        $this->assertFalse($dayOfMonthField->isSatisfiedBy(new DateTime(), 'L'));
     }
 
     /**
@@ -91,14 +91,14 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testIncrementsDate()
     {
-        $d = new DateTime('2011-03-15 11:15:00');
-        $f = new DayOfMonthField();
-        $f->increment($d);
-        $this->assertSame('2011-03-16 00:00:00', $d->format('Y-m-d H:i:s'));
+        $dateTime = new DateTime('2011-03-15 11:15:00');
+        $dayOfMonthField = new DayOfMonthField();
+        $dayOfMonthField->increment($dateTime);
+        $this->assertSame('2011-03-16 00:00:00', $dateTime->format('Y-m-d H:i:s'));
 
-        $d = new DateTime('2011-03-15 11:15:00');
-        $f->increment($d, true);
-        $this->assertSame('2011-03-14 23:59:00', $d->format('Y-m-d H:i:s'));
+        $dateTime = new DateTime('2011-03-15 11:15:00');
+        $dayOfMonthField->increment($dateTime, true);
+        $this->assertSame('2011-03-14 23:59:00', $dateTime->format('Y-m-d H:i:s'));
     }
 
     /**
@@ -109,7 +109,7 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testDoesNotAccept0Date()
     {
-        $f = new DayOfMonthField();
-        $this->assertFalse($f->validate(0));
+        $dayOfMonthField = new DayOfMonthField();
+        $this->assertFalse($dayOfMonthField->validate(0));
     }
 }
