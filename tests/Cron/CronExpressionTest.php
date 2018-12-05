@@ -359,17 +359,6 @@ class CronExpressionTest extends TestCase
     }
 
     /**
-     * @covers \Cron\CronExpression::getRunDate
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage Step cannot be greater than total range
-     */
-    public function testGetRunDateShouldReturnOtOfRangeException()
-    {
-        $cron = CronExpression::factory('*/2 */2 */2 */20 *');
-        $cron->getNextRunDate(new \DateTimeImmutable('2000-01-01'));
-    }
-
-    /**
      * @covers \Cron\CronExpression::getMultipleRunDates
      */
     public function testProvidesMultipleRunDates()
