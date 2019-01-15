@@ -34,7 +34,7 @@ class DayOfWeekField extends AbstractField
         parent::__construct();
     }
 
-    public function isSatisfiedBy(DateTime $date, $value)
+    public function isSatisfiedBy(DateTime $date, String $value)
     {
         if ($value == '?') {
             return true;
@@ -129,7 +129,7 @@ class DayOfWeekField extends AbstractField
         return $this->isSatisfied($fieldValue, $value);
     }
 
-    public function increment(DateTime $date, $invert = false)
+    public function increment(DateTime $date, bool $invert = false)
     {
         if ($invert) {
             $date->modify('-1 day');
@@ -145,7 +145,7 @@ class DayOfWeekField extends AbstractField
     /**
      * @inheritDoc
      */
-    public function validate($value)
+    public function validate(String $value)
     {
         $basicChecks = parent::validate($value);
 

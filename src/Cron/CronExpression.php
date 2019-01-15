@@ -66,7 +66,7 @@ class CronExpression
      *
      * @return CronExpression
      */
-    public static function factory($expression, FieldFactory $fieldFactory = null)
+    public static function factory(String $expression, FieldFactory $fieldFactory = null)
     {
         $mappings = array(
             '@yearly' => '0 0 1 1 *',
@@ -92,7 +92,7 @@ class CronExpression
      * @return bool True if a valid CRON expression was passed. False if not.
      * @see \Cron\CronExpression::factory
      */
-    public static function isValidExpression($expression)
+    public static function isValidExpression(String $expression)
     {
         try {
             self::factory($expression);
@@ -109,7 +109,7 @@ class CronExpression
      * @param string       $expression   CRON expression (e.g. '8 * * * *')
      * @param FieldFactory|null $fieldFactory Factory to create cron fields
      */
-    public function __construct($expression, FieldFactory $fieldFactory = null)
+    public function __construct(String $expression, FieldFactory $fieldFactory = null)
     {
         $this->fieldFactory = $fieldFactory;
         $this->setExpression($expression);
@@ -123,7 +123,7 @@ class CronExpression
      * @return CronExpression
      * @throws \InvalidArgumentException if not a valid CRON expression
      */
-    public function setExpression($value)
+    public function setExpression(String $value)
     {
         $this->cronParts = preg_split('/\s/', $value, -1, PREG_SPLIT_NO_EMPTY);
         if (count($this->cronParts) < 5) {
@@ -148,7 +148,7 @@ class CronExpression
      * @return CronExpression
      * @throws \InvalidArgumentException if the value is not valid for the part
      */
-    public function setPart($position, $value)
+    public function setPart(int $position, String $value)
     {
         if (!$this->fieldFactory->getField($position)->validate($value)) {
             throw new InvalidArgumentException(
@@ -168,7 +168,7 @@ class CronExpression
      *
      * @return CronExpression
      */
-    public function setMaxIterationCount($maxIterationCount)
+    public function setMaxIterationCount(int $maxIterationCount)
     {
         $this->maxIterationCount = $maxIterationCount;
 
@@ -192,7 +192,7 @@ class CronExpression
      * @return \DateTime
      * @throws \RuntimeException on too many iterations
      */
-    public function getNextRunDate($currentTime = 'now', $nth = 0, $allowCurrentDate = false, $timeZone = null)
+    public function getNextRunDate($currentTime = 'now', int $nth = 0, bool $allowCurrentDate = false, $timeZone = null)
     {
         return $this->getRunDate($currentTime, $nth, false, $allowCurrentDate, $timeZone);
     }
@@ -210,7 +210,7 @@ class CronExpression
      * @throws \RuntimeException on too many iterations
      * @see \Cron\CronExpression::getNextRunDate
      */
-    public function getPreviousRunDate($currentTime = 'now', $nth = 0, $allowCurrentDate = false, $timeZone = null)
+    public function getPreviousRunDate($currentTime = 'now', int $nth = 0, bool $allowCurrentDate = false, $timeZone = null)
     {
         return $this->getRunDate($currentTime, $nth, true, $allowCurrentDate, $timeZone);
     }
@@ -227,7 +227,7 @@ class CronExpression
      *
      * @return array Returns an array of run dates
      */
-    public function getMultipleRunDates($total, $currentTime = 'now', $invert = false, $allowCurrentDate = false, $timeZone = null)
+    public function getMultipleRunDates(int $total, $currentTime = 'now', bool $invert = false, bool $allowCurrentDate = false, $timeZone = null)
     {
         $matches = array();
         for ($i = 0; $i < max(0, $total); $i++) {
@@ -319,7 +319,7 @@ class CronExpression
      * @return \DateTime
      * @throws \RuntimeException on too many iterations
      */
-    protected function getRunDate($currentTime = null, $nth = 0, $invert = false, $allowCurrentDate = false, $timeZone = null)
+    protected function getRunDate($currentTime = null, int $nth = 0, bool $invert = false, bool $allowCurrentDate = false, $timeZone = null)
     {
         $timeZone = $this->determineTimeZone($currentTime, $timeZone);
 

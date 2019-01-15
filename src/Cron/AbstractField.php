@@ -45,7 +45,7 @@ abstract class AbstractField implements FieldInterface
      *
      * @return bool
      */
-    public function isSatisfied($dateValue, $value)
+    public function isSatisfied(String $dateValue, String $value)
     {
         if ($this->isIncrementsOfRanges($value)) {
             return $this->isInIncrementsOfRanges($dateValue, $value);
@@ -63,7 +63,7 @@ abstract class AbstractField implements FieldInterface
      *
      * @return bool
      */
-    public function isRange($value)
+    public function isRange(String $value)
     {
         return strpos($value, '-') !== false;
     }
@@ -110,7 +110,7 @@ abstract class AbstractField implements FieldInterface
      *
      * @return bool
      */
-    public function isInIncrementsOfRanges($dateValue, $value)
+    public function isInIncrementsOfRanges(String $dateValue, String $value)
     {
         $chunks = array_map('trim', explode('/', $value, 2));
         $range = $chunks[0];
@@ -157,7 +157,7 @@ abstract class AbstractField implements FieldInterface
      *
      * @return array
      */
-    public function getRangeForExpression($expression, $max)
+    public function getRangeForExpression(String $expression, int $max)
     {
         $values = array();
         $expression = $this->convertLiterals($expression);
@@ -204,7 +204,7 @@ abstract class AbstractField implements FieldInterface
         return $values;
     }
 
-    protected function convertLiterals($value)
+    protected function convertLiterals(String $value)
     {
         if (count($this->literals)) {
             $key = array_search($value, $this->literals);
@@ -222,7 +222,7 @@ abstract class AbstractField implements FieldInterface
      * @param string $value
      * @return bool
      */
-    public function validate($value)
+    public function validate(String $value)
     {
         $value = $this->convertLiterals($value);
 

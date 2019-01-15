@@ -13,12 +13,12 @@ class HoursField extends AbstractField
     protected $rangeStart = 0;
     protected $rangeEnd = 23;
 
-    public function isSatisfiedBy(DateTime $date, $value)
+    public function isSatisfiedBy(DateTime $date, String $value)
     {
         return $this->isSatisfied($date->format('H'), $value);
     }
 
-    public function increment(DateTime $date, $invert = false, $parts = null)
+    public function increment(DateTime $date, bool $invert = false, $parts = null)
     {
         // Change timezone to UTC temporarily. This will
         // allow us to go back or forwards and hour even

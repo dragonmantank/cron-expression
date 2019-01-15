@@ -23,7 +23,7 @@ class FieldFactory
      * @return FieldInterface
      * @throws InvalidArgumentException if a position is not valid
      */
-    public function getField($position)
+    public function getField(int $position)
     {
         if (!isset($this->fields[$position])) {
             switch ($position) {
