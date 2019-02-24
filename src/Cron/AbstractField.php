@@ -92,7 +92,8 @@ abstract class AbstractField implements FieldInterface
      */
     public function isInRange($dateValue, $value)
     {
-        $parts = array_map(function($value) {
+        $parts = array_map(
+            function ($value) {
                 $value = trim($value);
                 $value = $this->convertLiterals($value);
                 return $value;
@@ -176,12 +177,11 @@ abstract class AbstractField implements FieldInterface
 
         if ($this->isRange($expression) || $this->isIncrementsOfRanges($expression)) {
             if (!$this->isIncrementsOfRanges($expression)) {
-                list ($offset, $to) = explode('-', $expression);
+                list($offset, $to) = explode('-', $expression);
                 $offset = $this->convertLiterals($offset);
                 $to = $this->convertLiterals($to);
                 $stepSize = 1;
-            }
-            else {
+            } else {
                 $range = array_map('trim', explode('/', $expression, 2));
                 $stepSize = isset($range[1]) ? $range[1] : 0;
                 $range = $range[0];
@@ -198,8 +198,7 @@ abstract class AbstractField implements FieldInterface
                 }
             }
             sort($values);
-        }
-        else {
+        } else {
             $values = array($expression);
         }
 

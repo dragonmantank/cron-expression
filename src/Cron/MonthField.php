@@ -50,6 +50,4 @@ class MonthField extends AbstractField
 
         return $this;
     }
-
-
 }
