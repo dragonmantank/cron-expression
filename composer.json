@@ -20,6 +20,7 @@
         "php": "^7.0"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.14",
         "phpunit/phpunit": "^6.4|^7.0"
     },
     "autoload": {
@@ -36,5 +37,9 @@
         "branch-alias": {
             "dev-master": "2.3-dev"
         }
+    },
+    "scripts": {
+        "phpcs": "./vendor/bin/php-cs-fixer fix --dry-run --verbose --config .php_cs.php",
+        "phpcs-fix": "./vendor/bin/php-cs-fixer fix --verbose --config .php_cs.php"
     }
 }
