@@ -394,8 +394,7 @@ class CronExpression
 
             // Skip this match if needed
             if ((!$allowCurrentDate && $nextRun == $currentDate) || --$nth > -1) {
-                $this->fieldFactory->getField(0)->increment($nextRun, $invert, $parts[0] ?? null);
-
+                $field->increment($nextRun, $invert, $part);
                 continue;
             }
 
