@@ -41,6 +41,10 @@ echo $cron->getPreviousRunDate()->format('Y-m-d H:i:s');
 $cron = Cron\CronExpression::factory('3-59/15 6-12 */15 1 2-5');
 echo $cron->getNextRunDate()->format('Y-m-d H:i:s');
 
+// Run hourly start at 0 minute but allow delay for 15 minutes
+$cron = Cron\CronExpression::factory(0-15 * * * *);
+echo $cron->getNextRunDate()->format('Y-m-d H:i:s');
+
 // Calculate a run date two iterations into the future
 $cron = Cron\CronExpression::factory('@daily');
 echo $cron->getNextRunDate(null, 2)->format('Y-m-d H:i:s');
