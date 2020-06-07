@@ -297,7 +297,7 @@ class CronExpression
      *
      * @return bool Returns TRUE if the cron is due to run or FALSE if not
      */
-    public function isDue($currentTime = 'now', $timeZone = null): ?bool
+    public function isDue($currentTime = 'now', $timeZone = null): bool
     {
         $timeZone = $this->determineTimeZone($currentTime, $timeZone);
 
