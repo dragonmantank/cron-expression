@@ -621,4 +621,22 @@ class CronExpressionTest extends TestCase
 
         $this->assertSame("00", $nextRunDate->format("i"));
     }
+
+    /**
+     * @covers \Cron\CronExpression::asHumanReadable
+     */
+    public function testDisplayCronAsHumanReadable()
+    {
+        $cron = CronExpression::factory('* * * * *');
+        $this->assertSame('Every minute', $cron->asHumanreadable());
+
+        $cron = CronExpression::factory('30 22 * * *');
+        $this->assertSame('Every day at 10:30pm', $cron->asHumanreadable());
+
+        $cron = CronExpression::factory('0 16 * * 1');
+        $this->assertSame('Every Monday at 4:00pm', $cron->asHumanreadable());
+
+        $cron = CronExpression::factory('0 1-5 * * *');
+        $this->assertSame('5 times a day', $cron->asHumanreadable());
+    }
 }

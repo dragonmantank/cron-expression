@@ -10,6 +10,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use InvalidArgumentException;
+use Lorisleiva\CronTranslator\CronTranslator;
 use RuntimeException;
 
 /**
@@ -320,6 +321,16 @@ class CronExpression
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Returns a string containing the english version of the cron expression.
+     *
+     * @return string The english version of the string.
+     */
+    public function asHumanReadable(): string
+    {
+        return CronTranslator::translate($this->getExpression());
     }
 
     /**
