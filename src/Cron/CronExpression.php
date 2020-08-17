@@ -31,6 +31,8 @@ class CronExpression
     public const DAY = 2;
     public const MONTH = 3;
     public const WEEKDAY = 4;
+    
+    /** @deprecated */
     public const YEAR = 5;
 
     /**
