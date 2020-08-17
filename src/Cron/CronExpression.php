@@ -85,7 +85,7 @@ class CronExpression
             $expression = $mappings[$shortcut];
         }
 
-        return new static($expression, $fieldFactory ?: new FieldFactory());
+        return new static($expression, $fieldFactory);
     }
 
     /**
@@ -114,9 +114,9 @@ class CronExpression
      * @param string $expression CRON expression (e.g. '8 * * * *')
      * @param null|FieldFactory $fieldFactory Factory to create cron fields
      */
-    public function __construct(string $expression, FieldFactory $fieldFactory = null)
+    public function __construct(string $expression, FieldFactoryInterface $fieldFactory = null)
     {
-        $this->fieldFactory = $fieldFactory ?: new FieldFactory();
+        $this->fieldFactory = $fieldFactory ?? new FieldFactory();
         $this->setExpression($expression);
     }
 
