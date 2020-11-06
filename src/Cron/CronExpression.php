@@ -67,7 +67,7 @@ class CronExpression
      *      `@hourly` - Run once an hour, first minute - 0 * * * *
      * @param null|FieldFactoryInterface $fieldFactory Field factory to use
      *
-     * @return CronExpression
+     * @return static
      */
     public static function factory(string $expression, FieldFactoryInterface $fieldFactory = null): CronExpression
     {
