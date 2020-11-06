@@ -103,7 +103,6 @@ class CronExpression
      */
     public function __construct(string $expression, FieldFactory $fieldFactory = null)
     {
-
         $shortcut = strtolower($expression);
         $expression = self::MAPPINGS[$shortcut] ?? $expression;
 
