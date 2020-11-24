@@ -99,9 +99,9 @@ class CronExpression
      * Parse a CRON expression.
      *
      * @param string $expression CRON expression (e.g. '8 * * * *')
-     * @param null|FieldFactory $fieldFactory Factory to create cron fields
+     * @param null|FieldFactoryInterface $fieldFactory Factory to create cron fields
      */
-    public function __construct(string $expression, FieldFactory $fieldFactory = null)
+    public function __construct(string $expression, FieldFactoryInterface $fieldFactory = null)
     {
         $shortcut = strtolower($expression);
         $expression = self::MAPPINGS[$shortcut] ?? $expression;
