@@ -22,12 +22,23 @@ class HoursField extends AbstractField
      */
     protected $rangeEnd = 23;
 
+    protected $lastInvert = false;
+
+    protected $offsetChange = 0;
+
     /**
      * {@inheritdoc}
      */
     public function isSatisfiedBy(DateTimeInterface $date, $value): bool
     {
-        return $this->isSatisfied((int) $date->format('H'), $value);
+        $checkValue = (int) $date->format('H');
+        $retval = $this->isSatisfied($checkValue, $value);
+        if ((! $retval) && ($this->offsetChange !== 0)) {
+            $change = floor(($this->lastInvert ? -$this->offsetChange : $this->offsetChange) / 3600);
+            $checkValue += (int) $change;
+            $retval = $this->isSatisfied($checkValue, $value);
+        }
+        return $retval;
     }
 
     /**
@@ -38,6 +49,10 @@ class HoursField extends AbstractField
      */
     public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
+        $date = $date->setTime((int) $date->format('H'), 0);
+        $this->lastInvert = $invert;
+        $offset = $date->getOffset();
+
         // Change timezone to UTC temporarily. This will
         // allow us to go back or forwards and hour even
         // if DST will be changed between the hours.
@@ -47,7 +62,7 @@ class HoursField extends AbstractField
             $date = $date->modify(($invert ? '-' : '+') . '1 hour');
             $date = $date->setTimezone($timezone);
 
-            $date = $date->setTime((int)$date->format('H'), $invert ? 59 : 0);
+            $date = $date->setTime((int) $date->format('H'), 0);
             return $this;
         }
 
@@ -57,7 +72,7 @@ class HoursField extends AbstractField
             $hours = array_merge($hours, $this->getRangeForExpression($part, 23));
         }
 
-        $current_hour = $date->format('H');
+        $current_hour = (int) $date->format('H');
         $position = $invert ? \count($hours) - 1 : 0;
         $countHours = \count($hours);
         if ($countHours > 1) {
@@ -72,11 +87,28 @@ class HoursField extends AbstractField
         }
 
         $hour = (int) $hours[$position];
-        if ((!$invert && (int) $date->format('H') >= $hour) || ($invert && (int) $date->format('H') <= $hour)) {
+        // Target hour causes a day change
+        if ((!$invert && $current_hour >= $hour) || ($invert && $current_hour <= $hour)) {
             $date = $date->modify(($invert ? '-' : '+') . '1 day');
-            $date = $date->setTime($invert ? 23 : 0, $invert ? 59 : 0);
-        } else {
-            $date = $date->setTime($hour, $invert ? 59 : 0);
+            $date = $date->setTime(($invert ? 23 : 0), 0);
+            return $this;
+        }
+
+        $date = $date->setTime($hour, 0);
+
+        $newOffset = $date->getOffset();
+        // We have already changed DST
+        if ($newOffset !== $offset) {
+            $this->offsetChange = ($offset - $newOffset);
+        }
+
+        $actualHour = (int) $date->format('H');
+        // DST caused a roll-over - we're about to change zones
+        if (($current_hour !== $actualHour) && ($this->offsetChange === 0)) {
+            $nextValue = ($hour + ($invert ? -2 : 2));
+            $dstCheck = clone $date;
+            $dstCheck = $dstCheck->setTime($nextValue, 0);
+            $this->offsetChange = ($offset - $dstCheck->getOffset());
         }
 
         return $this;
