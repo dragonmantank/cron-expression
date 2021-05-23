@@ -32,7 +32,7 @@ class CronExpression
     public const DAY = 2;
     public const MONTH = 3;
     public const WEEKDAY = 4;
-    
+
     /** @deprecated */
     public const YEAR = 5;
 
@@ -363,7 +363,9 @@ class CronExpression
 
         Assert::isInstanceOf($currentDate, DateTime::class);
         $currentDate->setTimezone(new DateTimeZone($timeZone));
-        $currentDate->setTime((int) $currentDate->format('H'), (int) $currentDate->format('i'), 0);
+        // Workaround for setTime causing an offset change: https://bugs.php.net/bug.php?id=81074
+        $currentDate = \DateTime::createFromFormat("!Y-m-d H:iO", $currentDate->format("Y-m-d H:iP"), $currentDate->getTimezone());
+        $currentDate->setTimezone(new DateTimeZone($timeZone));
 
         $nextRun = clone $currentDate;
 

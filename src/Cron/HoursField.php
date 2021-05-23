@@ -38,6 +38,7 @@ class HoursField extends AbstractField
             $checkValue += (int) $change;
             $retval = $this->isSatisfied($checkValue, $value);
         }
+        $this->offsetChange = 0;
         return $retval;
     }
 
@@ -51,6 +52,7 @@ class HoursField extends AbstractField
     {
         $date = $date->setTime((int) $date->format('H'), 0);
         $this->lastInvert = $invert;
+        $this->offsetChange = 0;
         $offset = $date->getOffset();
 
         // Change timezone to UTC temporarily. This will
@@ -97,10 +99,7 @@ class HoursField extends AbstractField
         $date = $date->setTime($hour, 0);
 
         $newOffset = $date->getOffset();
-        // We have already changed DST
-        if ($newOffset !== $offset) {
-            $this->offsetChange = ($offset - $newOffset);
-        }
+        $this->offsetChange = ($offset - $newOffset);
 
         $actualHour = (int) $date->format('H');
         // DST caused a roll-over - we're about to change zones
