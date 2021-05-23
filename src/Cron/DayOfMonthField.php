@@ -79,7 +79,7 @@ class DayOfMonthField extends AbstractField
     /**
      * {@inheritdoc}
      */
-    public function isSatisfiedBy(DateTimeInterface $date, $value): bool
+    public function isSatisfiedBy(DateTimeInterface $date, $value, $invert): bool
     {
         // ? states that the field value is to be skipped
         if ('?' === $value) {

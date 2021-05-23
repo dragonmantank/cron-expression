@@ -57,7 +57,7 @@ class DayOfWeekField extends AbstractField
      *
      * @param \DateTime|\DateTimeImmutable $date
      */
-    public function isSatisfiedBy(DateTimeInterface $date, $value): bool
+    public function isSatisfiedBy(DateTimeInterface $date, $value, $invert): bool
     {
         if ('?' === $value) {
             return true;

@@ -16,10 +16,11 @@ interface FieldInterface
      *
      * @param DateTimeInterface $date  DateTime object to check
      * @param string            $value CRON expression to test against
+     * @param bool              $invert Direction of travel
      *
      * @return bool Returns TRUE if satisfied, FALSE otherwise
      */
-    public function isSatisfiedBy(DateTimeInterface $date, $value): bool;
+    public function isSatisfiedBy(DateTimeInterface $date, $value, $invert): bool;
 
     /**
      * When a CRON expression is not satisfied, this method is used to increment
