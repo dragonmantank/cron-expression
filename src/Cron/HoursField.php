@@ -68,6 +68,7 @@ class HoursField extends AbstractField
         $this->lastInvert = $invert;
         $this->offsetChange = null;
         $offset = $date->getOffset();
+        $tsCurrent = $date->getTimestamp();
 
         // Change timezone to UTC temporarily. This will
         // allow us to go back or forwards and hour even
@@ -78,7 +79,7 @@ class HoursField extends AbstractField
             $date = $date->modify(($invert ? '-' : '+') . '1 hour');
             $date = $date->setTimezone($timezone);
 
-            $date = $date->setTime((int) $date->format('H'), 0);
+            $date = $date->setTime((int) $date->format('H'), ($invert ? 59 : 0));
 
             $newOffset = $date->getOffset();
             $this->offsetChange = ($offset - $newOffset);
@@ -109,14 +110,14 @@ class HoursField extends AbstractField
         // Target hour causes a day change
         if ((!$invert && $current_hour >= $hour) || ($invert && $current_hour <= $hour)) {
             $date = $date->modify(($invert ? '-' : '+') . '1 day');
-            $date = $date->setTime(($invert ? 23 : 0), 0);
+            $date = $date->setTime(($invert ? 23 : 0), ($invert ? 59 : 0));
 
             $newOffset = $date->getOffset();
             $this->offsetChange = ($offset - $newOffset);
             return $this;
         }
 
-        $date = $date->setTime($hour, 0);
+        $date = $date->setTime($hour, ($invert ? 59 : 0));
 
         $newOffset = $date->getOffset();
         $this->offsetChange = ($offset - $newOffset);
@@ -126,8 +127,21 @@ class HoursField extends AbstractField
         if (($current_hour !== $actualHour) && ($this->offsetChange === 0)) {
             $nextValue = ($hour + ($invert ? -2 : 2));
             $dstCheck = clone $date;
-            $dstCheck = $dstCheck->setTime($nextValue, 0);
+            $dstCheck = $dstCheck->setTime($nextValue, ($invert ? 59 : 0));
             $this->offsetChange = ($offset - $dstCheck->getOffset());
+        }
+
+//        if ($date->getTimestamp() === $tsCurrent) {
+        $tsActual = $date->getTimestamp();
+        if (
+            ($invert && ($tsActual >= $tsCurrent))
+            || ((! $invert) && ($tsActual <= $tsCurrent))
+        ) {
+            $timezone = $date->getTimezone();
+            $date = $date->setTimezone(new DateTimeZone('UTC'));
+            $date = $date->modify(($invert ? '-' : '+') . '1 hour');
+            $date = $date->setTimezone($timezone);
+            $this->offsetChange = ($offset - $date->getOffset());
         }
 
         return $this;

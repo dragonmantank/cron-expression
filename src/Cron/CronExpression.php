@@ -225,6 +225,36 @@ class CronExpression
         return $this->getRunDate($currentTime, $nth, true, $allowCurrentDate, $timeZone);
     }
 
+
+    protected function inputTimeToDateTime($currentTime, $timeZone): \DateTime
+    {
+        $timeZone = $this->determineTimeZone($currentTime, $timeZone);
+
+        if ($currentTime instanceof DateTime) {
+            $currentDate = clone $currentTime;
+        } elseif ($currentTime instanceof DateTimeImmutable) {
+            $currentDate = DateTime::createFromFormat('U', $currentTime->format('U'));
+        } elseif (\is_string($currentTime)) {
+            $currentDate = new DateTime($currentTime);
+        } else {
+            $currentDate = new DateTime('now');
+        }
+
+        Assert::isInstanceOf($currentDate, DateTime::class);
+        if ($timeZone !== null) {
+            $currentDate->setTimezone(new DateTimeZone($timeZone));
+            // Workaround for setTime causing an offset change: https://bugs.php.net/bug.php?id=81074
+            $currentDate = \DateTime::createFromFormat(
+                "!Y-m-d H:iO",
+                $currentDate->format("Y-m-d H:iP"),
+                $currentDate->getTimezone()
+            );
+            $currentDate->setTimezone(new DateTimeZone($timeZone));
+        }
+
+        return $currentDate;
+    }
+
     /**
      * Get multiple run dates starting at the current date or a specific date.
      *
@@ -239,14 +269,20 @@ class CronExpression
      */
     public function getMultipleRunDates(int $total, $currentTime = 'now', bool $invert = false, bool $allowCurrentDate = false, $timeZone = null): array
     {
+        $dtCurrent = $this->inputTimeToDateTime($currentTime, $timeZone);
+
         $matches = [];
         $max = max(0, $total);
         for ($i = 0; $i < $max; ++$i) {
             try {
-                $matches[] = $this->getRunDate($currentTime, $i, $invert, $allowCurrentDate, $timeZone);
+                $result = $this->getRunDate($dtCurrent, 0, $invert, $allowCurrentDate, $timeZone);
             } catch (RuntimeException $e) {
                 break;
             }
+
+            $allowCurrentDate = false;
+            $dtCurrent = clone $result;
+            $matches[] = $result;
         }
 
         return $matches;
@@ -349,23 +385,7 @@ class CronExpression
      */
     protected function getRunDate($currentTime = null, int $nth = 0, bool $invert = false, bool $allowCurrentDate = false, $timeZone = null): DateTime
     {
-        $timeZone = $this->determineTimeZone($currentTime, $timeZone);
-
-        if ($currentTime instanceof DateTime) {
-            $currentDate = clone $currentTime;
-        } elseif ($currentTime instanceof DateTimeImmutable) {
-            $currentDate = DateTime::createFromFormat('U', $currentTime->format('U'));
-        } elseif (\is_string($currentTime)) {
-            $currentDate = new DateTime($currentTime);
-        } else {
-            $currentDate = new DateTime('now');
-        }
-
-        Assert::isInstanceOf($currentDate, DateTime::class);
-        $currentDate->setTimezone(new DateTimeZone($timeZone));
-        // Workaround for setTime causing an offset change: https://bugs.php.net/bug.php?id=81074
-        $currentDate = \DateTime::createFromFormat("!Y-m-d H:iO", $currentDate->format("Y-m-d H:iP"), $currentDate->getTimezone());
-        $currentDate->setTimezone(new DateTimeZone($timeZone));
+        $currentDate = $this->inputTimeToDateTime($currentTime, $timeZone);
 
         $nextRun = clone $currentDate;
 
@@ -381,7 +401,7 @@ class CronExpression
             $fields[$position] = $this->fieldFactory->getField($position);
         }
 
-        if (isset($parts[2]) && isset($parts[4])) {
+        if (isset($parts[self::DAY]) && isset($parts[self::WEEKDAY])) {
             $domExpression = sprintf('%s %s %s %s *', $this->getExpression(0), $this->getExpression(1), $this->getExpression(2), $this->getExpression(3));
             $dowExpression = sprintf('%s %s * %s %s', $this->getExpression(0), $this->getExpression(1), $this->getExpression(3), $this->getExpression(4));
 
@@ -398,6 +418,15 @@ class CronExpression
 
             return $combined[$nth];
         }
+
+        $positions = [
+            self::MINUTE => "Minute",
+            self::HOUR => "Hour",
+            self::DAY => "Day",
+            self::MONTH => "Month",
+            self::WEEKDAY => "DoW",
+            self::YEAR => "Year",
+        ];
 
         // Set a hard limit to bail on an impossible date
         for ($i = 0; $i < $this->maxIterationCount; ++$i) {
@@ -428,8 +457,7 @@ class CronExpression
 
             // Skip this match if needed
             if ((!$allowCurrentDate && $nextRun == $currentDate) || --$nth > -1) {
-                $this->fieldFactory->getField(0)->increment($nextRun, $invert, $parts[0] ?? null);
-
+                $this->fieldFactory->getField(self::MINUTE)->increment($nextRun, $invert, $parts[self::MINUTE] ?? null);
                 continue;
             }
 
