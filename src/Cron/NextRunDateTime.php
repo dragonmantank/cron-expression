@@ -288,11 +288,11 @@ class NextRunDateTime
         $previousOffset = $this->dt->getOffset();
 
         if (! $this->moveBackwards) {
-            $this->timezoneSafeModify('first day of next month');
+            $this->dt->modify('first day of next month');
             // FIXME setTime may cause an offset change: https://bugs.php.net/bug.php?id=81074
             $this->dt->setTime(0, 0);
         } else {
-            $this->timezoneSafeModify('last day of previous month');
+            $this->dt->modify('last day of previous month');
             // FIXME setTime may cause an offset change: https://bugs.php.net/bug.php?id=81074
             $this->dt->setTime(23, 59);
         }

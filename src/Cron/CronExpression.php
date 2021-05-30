@@ -234,10 +234,11 @@ class CronExpression
         $tz = new \DateTimeZone($timeZone);
 
         if ($currentTime instanceof DateTimeInterface) {
-            // Do nothing
             $currentDate = $currentTime;
+            $currentDate = $currentDate->setTimezone($tz);
         } elseif (\is_string($currentTime)) {
             $currentDate = new DateTime($currentTime, $tz);
+            $currentDate->setTimezone($tz);
         } else {
             $currentDate = new DateTime('now', $tz);
         }
