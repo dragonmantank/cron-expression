@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Cron;
 
 use DateTime;
-use DateTimeImmutable;
 use DateTimeInterface;
-use DateTimeZone;
 use Exception;
 use InvalidArgumentException;
 use RuntimeException;
@@ -226,33 +224,26 @@ class CronExpression
     }
 
 
-    protected function inputTimeToDateTime($currentTime, $timeZone): \DateTime
+    protected function inputTimeToDateTime($currentTime, $timeZone, bool $moveBackwards): NextRunDateTime
     {
+        if ($currentTime instanceof NextRunDateTime) {
+            return $currentTime;
+        }
+
         $timeZone = $this->determineTimeZone($currentTime, $timeZone);
+        $tz = new \DateTimeZone($timeZone);
 
-        if ($currentTime instanceof DateTime) {
-            $currentDate = clone $currentTime;
-        } elseif ($currentTime instanceof DateTimeImmutable) {
-            $currentDate = DateTime::createFromFormat('U', $currentTime->format('U'));
+        if ($currentTime instanceof DateTimeInterface) {
+            // Do nothing
+            $currentDate = $currentTime;
         } elseif (\is_string($currentTime)) {
-            $currentDate = new DateTime($currentTime);
+            $currentDate = new DateTime($currentTime, $tz);
         } else {
-            $currentDate = new DateTime('now');
+            $currentDate = new DateTime('now', $tz);
         }
 
-        Assert::isInstanceOf($currentDate, DateTime::class);
-        if ($timeZone !== null) {
-            $currentDate->setTimezone(new DateTimeZone($timeZone));
-            // Workaround for setTime causing an offset change: https://bugs.php.net/bug.php?id=81074
-            $currentDate = \DateTime::createFromFormat(
-                "!Y-m-d H:iO",
-                $currentDate->format("Y-m-d H:iP"),
-                $currentDate->getTimezone()
-            );
-            $currentDate->setTimezone(new DateTimeZone($timeZone));
-        }
-
-        return $currentDate;
+        Assert::isInstanceOf($currentDate, DateTimeInterface::class);
+        return new NextRunDateTime($currentDate, $moveBackwards);
     }
 
     /**
@@ -269,7 +260,8 @@ class CronExpression
      */
     public function getMultipleRunDates(int $total, $currentTime = 'now', bool $invert = false, bool $allowCurrentDate = false, $timeZone = null): array
     {
-        $dtCurrent = $this->inputTimeToDateTime($currentTime, $timeZone);
+        $dtCurrent = $this->inputTimeToDateTime($currentTime, $timeZone, $invert);
+        print "getMultipleRunDates: ". $dtCurrent->format(\DateTime::RFC3339 ." e") ."\n";
 
         $matches = [];
         $max = max(0, $total);
@@ -281,7 +273,7 @@ class CronExpression
             }
 
             $allowCurrentDate = false;
-            $dtCurrent = clone $result;
+            $dtCurrent = new NextRunDateTime($result, $invert);
             $matches[] = $result;
         }
 
@@ -343,26 +335,10 @@ class CronExpression
      */
     public function isDue($currentTime = 'now', $timeZone = null): bool
     {
-        $timeZone = $this->determineTimeZone($currentTime, $timeZone);
-
-        if ('now' === $currentTime) {
-            $currentTime = new DateTime();
-        } elseif ($currentTime instanceof DateTime) {
-            $currentTime = clone $currentTime;
-        } elseif ($currentTime instanceof DateTimeImmutable) {
-            $currentTime = DateTime::createFromFormat('U', $currentTime->format('U'));
-        } elseif (\is_string($currentTime)) {
-            $currentTime = new DateTime($currentTime);
-        }
-
-        Assert::isInstanceOf($currentTime, DateTime::class);
-        $currentTime->setTimezone(new DateTimeZone($timeZone));
-
-        // drop the seconds to 0
-        $currentTime->setTime((int) $currentTime->format('H'), (int) $currentTime->format('i'), 0);
+        $nextRunTime = $this->inputTimeToDateTime($currentTime, $timeZone, false);
 
         try {
-            return $this->getNextRunDate($currentTime, 0, true)->getTimestamp() === $currentTime->getTimestamp();
+            return $this->getNextRunDate($nextRunTime, 0, true)->getTimestamp() === $nextRunTime->getTimestamp();
         } catch (Exception $e) {
             return false;
         }
@@ -385,7 +361,7 @@ class CronExpression
      */
     protected function getRunDate($currentTime = null, int $nth = 0, bool $invert = false, bool $allowCurrentDate = false, $timeZone = null): DateTime
     {
-        $currentDate = $this->inputTimeToDateTime($currentTime, $timeZone);
+        $currentDate = $this->inputTimeToDateTime($currentTime, $timeZone, $invert);
 
         $nextRun = clone $currentDate;
 
@@ -430,22 +406,24 @@ class CronExpression
 
         // Set a hard limit to bail on an impossible date
         for ($i = 0; $i < $this->maxIterationCount; ++$i) {
+            print "Iteration {$i} :: ". $nextRun->format(\DateTime::RFC3339 ." e") ."\n";
             foreach ($parts as $position => $part) {
                 $satisfied = false;
                 // Get the field object used to validate this part
                 $field = $fields[$position];
                 // Check if this is singular or a list
                 if (false === strpos($part, ',')) {
-                    $satisfied = $field->isSatisfiedBy($nextRun, $part, $invert);
+                    $satisfied = $field->isSatisfiedBy($nextRun, $part);
                 } else {
                     foreach (array_map('trim', explode(',', $part)) as $listPart) {
-                        if ($field->isSatisfiedBy($nextRun, $listPart, $invert)) {
+                        if ($field->isSatisfiedBy($nextRun, $listPart)) {
                             $satisfied = true;
 
                             break;
                         }
                     }
                 }
+                print "Part ". $positions[$position] ." :: Satisfied: ". ($satisfied ? 'TRUE' : 'false') ."\n";
 
                 // If the field is not satisfied, then start over
                 if (!$satisfied) {
@@ -457,11 +435,14 @@ class CronExpression
 
             // Skip this match if needed
             if ((!$allowCurrentDate && $nextRun == $currentDate) || --$nth > -1) {
+                print "SKIP :: ";
+                print ($nextRun == $currentDate ? 'Match' : 'No match')  ." :: ". $nextRun->format(\DateTime::RFC3339 ." e")
+                     ." =? ". $currentDate->format(\DateTime::RFC3339 ." e")." :: {$nth}\n";
                 $this->fieldFactory->getField(self::MINUTE)->increment($nextRun, $invert, $parts[self::MINUTE] ?? null);
                 continue;
             }
 
-            return $nextRun;
+            return $nextRun->getDateTime();
         }
 
         // @codeCoverageIgnoreStart
@@ -484,7 +465,7 @@ class CronExpression
         }
 
         if ($currentTime instanceof DateTimeInterface) {
-            return $currentTime->getTimeZone()->getName();
+            return $currentTime->getTimezone()->getName();
         }
 
         return date_default_timezone_get();

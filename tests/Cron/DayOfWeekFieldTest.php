@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cron\Tests;
 
 use Cron\DayOfWeekField;
+use Cron\NextRunDateTime;
 use DateTime;
-use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -37,8 +37,7 @@ class DayOfWeekFieldTest extends TestCase
     public function testChecksIfSatisfied(): void
     {
         $f = new DayOfWeekField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime(), '?', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime(), false), '?'));
     }
 
     /**
@@ -46,25 +45,16 @@ class DayOfWeekFieldTest extends TestCase
      */
     public function testIncrementsDate(): void
     {
-        $d = new DateTime('2011-03-15 11:15:00');
+        $dt = new DateTime('2011-03-15 11:15:00');
+        $d = new NextRunDateTime($dt, false);
         $f = new DayOfWeekField();
         $f->increment($d);
         $this->assertSame('2011-03-16 00:00:00', $d->format('Y-m-d H:i:s'));
 
-        $d = new DateTime('2011-03-15 11:15:00');
+        $dt = new DateTime('2011-03-15 11:15:00');
+        $d = new NextRunDateTime($dt, true);
         $f->increment($d, true);
         $this->assertSame('2011-03-14 23:59:00', $d->format('Y-m-d H:i:s'));
-    }
-
-    /**
-     * @covers \Cron\DayOfWeekField::increment
-     */
-    public function testIncrementsDateTimeImmutable(): void
-    {
-        $d = new DateTimeImmutable('2011-03-15 11:15:00');
-        $f = new DayOfWeekField();
-        $f->increment($d);
-        $this->assertSame('2011-03-16 00:00:00', $d->format('Y-m-d H:i:s'));
     }
 
     /**
@@ -75,7 +65,7 @@ class DayOfWeekFieldTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Weekday must be a value between 0 and 7. 12 given');
         $f = new DayOfWeekField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime(), '12#1', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime( new DateTime(), false), '12#1'));
     }
 
     /**
@@ -86,7 +76,7 @@ class DayOfWeekFieldTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('There are never more than 5 or less than 1 of a given weekday in a month');
         $f = new DayOfWeekField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime(), '3#6', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime(), false), '3#6'));
     }
 
     /**
@@ -111,13 +101,13 @@ class DayOfWeekFieldTest extends TestCase
     public function testHandlesZeroAndSevenDayOfTheWeekValues(): void
     {
         $f = new DayOfWeekField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2011-09-04 00:00:00'), '0-2', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2011-09-04 00:00:00'), '6-0', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2011-09-04 00:00:00'), false), '0-2'));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2011-09-04 00:00:00'), false), '6-0'));
 
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2014-04-20 00:00:00'), 'SUN', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2014-04-20 00:00:00'), 'SUN#3', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2014-04-20 00:00:00'), '0#3', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2014-04-20 00:00:00'), '7#3', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2014-04-20 00:00:00'), false), 'SUN'));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2014-04-20 00:00:00'), false), 'SUN#3'));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2014-04-20 00:00:00'), false), '0#3'));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2014-04-20 00:00:00'), false), '7#3'));
     }
 
     /**
@@ -126,10 +116,10 @@ class DayOfWeekFieldTest extends TestCase
     public function testHandlesLastWeekdayOfTheMonth(): void
     {
         $f = new DayOfWeekField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2018-12-28 00:00:00'), 'FRIL', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTime('2018-12-28 00:00:00'), '5L', false));
-        $this->assertFalse($f->isSatisfiedBy(new DateTime('2018-12-21 00:00:00'), 'FRIL', false));
-        $this->assertFalse($f->isSatisfiedBy(new DateTime('2018-12-21 00:00:00'), '5L', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2018-12-28 00:00:00'), false), 'FRIL'));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2018-12-28 00:00:00'), false), '5L'));
+        $this->assertFalse($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2018-12-21 00:00:00'), false), 'FRIL'));
+        $this->assertFalse($f->isSatisfiedBy(new NextRunDateTime(new DateTime('2018-12-21 00:00:00'), false), '5L'));
     }
 
     /**

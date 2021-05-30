@@ -54,10 +54,8 @@ class DayOfWeekField extends AbstractField
 
     /**
      * @inheritDoc
-     *
-     * @param \DateTime|\DateTimeImmutable $date
      */
-    public function isSatisfiedBy(DateTimeInterface $date, $value, $invert): bool
+    public function isSatisfiedBy(NextRunDateTime $date, $value): bool
     {
         if ('?' === $value) {
             return true;
@@ -76,15 +74,8 @@ class DayOfWeekField extends AbstractField
             $weekday = $this->convertLiterals(substr($value, 0, strpos($value, 'L')));
             $weekday %= 7;
 
-            $tdate = clone $date;
-            $tdate = $tdate->setDate($currentYear, $currentMonth, $lastDayOfMonth);
-            while ($tdate->format('w') != $weekday) {
-                $tdateClone = new DateTime();
-                $tdate = $tdateClone->setTimezone($tdate->getTimezone())
-                    ->setDate($currentYear, $currentMonth, --$lastDayOfMonth);
-            }
-
-            return (int) $date->format('j') === $lastDayOfMonth;
+            $remainingDaysInMonth = $date->getRemainingDaysInMonth();
+            return (($date->format('w') === $weekday) && ($remainingDaysInMonth < 7));
         }
 
         // Handle # hash tokens
@@ -118,7 +109,7 @@ class DayOfWeekField extends AbstractField
                 return false;
             }
 
-            $tdate = clone $date;
+            $tdate = $date->getDateTime();
             $tdate = $tdate->setDate($currentYear, $currentMonth, 1);
             $dayCount = 0;
             $currentDay = 1;
@@ -156,16 +147,10 @@ class DayOfWeekField extends AbstractField
 
     /**
      * @inheritDoc
-     *
-     * @param \DateTime|\DateTimeImmutable $date
      */
-    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
+    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
     {
-        if ($invert) {
-            $date = $date->modify('-1 day')->setTime(23, 59, 0);
-        } else {
-            $date = $date->modify('+1 day')->setTime(0, 0, 0);
-        }
+        $date->incrementDay();
 
         return $this;
     }

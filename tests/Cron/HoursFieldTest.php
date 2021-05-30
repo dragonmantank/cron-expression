@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cron\Tests;
 
 use Cron\HoursField;
+use Cron\NextRunDateTime;
 use DateTime;
-use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,25 +33,15 @@ class HoursFieldTest extends TestCase
      */
     public function testIncrementsDate(): void
     {
-        $d = new DateTime('2011-03-15 11:15:00');
+        $dt = new DateTime('2011-03-15 11:15:00');
+        $d = new NextRunDateTime($dt, false);
         $f = new HoursField();
-        $f->increment($d);
+        $f->increment($d, false, null);
         $this->assertSame('2011-03-15 12:00:00', $d->format('Y-m-d H:i:s'));
 
-        $d->setTime(11, 15, 0);
-        $f->increment($d, true);
+        $d = new NextRunDateTime($dt, true);
+        $f->increment($d, true, null);
         $this->assertSame('2011-03-15 10:59:00', $d->format('Y-m-d H:i:s'));
-    }
-
-    /**
-     * @covers \Cron\HoursField::increment
-     */
-    public function testIncrementsDateTimeImmutable(): void
-    {
-        $d = new DateTimeImmutable('2011-03-15 11:15:00');
-        $f = new HoursField();
-        $f->increment($d);
-        $this->assertSame('2011-03-15 12:00:00', $d->format('Y-m-d H:i:s'));
     }
 
     /**
@@ -61,12 +51,14 @@ class HoursFieldTest extends TestCase
     {
         $tz = date_default_timezone_get();
         date_default_timezone_set('America/St_Johns');
-        $d = new DateTime('2011-03-15 11:15:00');
+        $dt = new DateTime('2011-03-15 11:15:00');
+        $d = new NextRunDateTime($dt, false);
         $f = new HoursField();
         $f->increment($d);
         $this->assertSame('2011-03-15 12:00:00', $d->format('Y-m-d H:i:s'));
 
-        $d->setTime(11, 15, 0);
+        $dt->setTime(11, 15, 0);
+        $d = new NextRunDateTime($dt, true);
         $f->increment($d, true);
         $this->assertSame('2011-03-15 10:59:00', $d->format('Y-m-d H:i:s'));
         date_default_timezone_set($tz);
@@ -79,12 +71,14 @@ class HoursFieldTest extends TestCase
     {
         $tz = date_default_timezone_get();
         date_default_timezone_set('Asia/Kathmandu');
-        $d = new DateTime('2011-03-15 11:15:00');
+        $dt = new DateTime('2011-03-15 11:15:00');
+        $d = new NextRunDateTime($dt, false);
         $f = new HoursField();
         $f->increment($d);
         $this->assertSame('2011-03-15 12:00:00', $d->format('Y-m-d H:i:s'));
 
-        $d->setTime(11, 15, 0);
+        $dt->setTime(11, 15, 0);
+        $d = new NextRunDateTime($dt, true);
         $f->increment($d, true);
         $this->assertSame('2011-03-15 10:59:00', $d->format('Y-m-d H:i:s'));
         date_default_timezone_set($tz);
@@ -96,7 +90,8 @@ class HoursFieldTest extends TestCase
     public function testIncrementAcrossDstChange(): void
     {
         $tz = new \DateTimeZone("Europe/London");
-        $d = \DateTimeImmutable::createFromFormat("!Y-m-d H:i:s", "2021-03-27 23:00:00", $tz);
+        $dt = \DateTimeImmutable::createFromFormat("!Y-m-d H:i:s", "2021-03-27 23:00:00", $tz);
+        $d = new NextRunDateTime($dt, false);
         $f = new HoursField();
         $f->increment($d);
         $this->assertSame("2021-03-28 00:00:00", $d->format("Y-m-d H:i:s"));
@@ -105,6 +100,7 @@ class HoursFieldTest extends TestCase
         $f->increment($d);
         $this->assertSame("2021-03-28 03:00:00", $d->format("Y-m-d H:i:s"));
 
+        $d = new NextRunDateTime($dt, true);
         $f->increment($d, true);
         $this->assertSame("2021-03-28 02:59:00", $d->format("Y-m-d H:i:s"));
         $f->increment($d, true);

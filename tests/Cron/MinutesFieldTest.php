@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cron\Tests;
 
 use Cron\MinutesField;
+use Cron\NextRunDateTime;
 use DateTime;
-use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -32,8 +32,7 @@ class MinutesFieldTest extends TestCase
     public function testChecksIfSatisfied(): void
     {
         $f = new MinutesField();
-        $this->assertTrue($f->isSatisfiedBy(new DateTime(), '?', false));
-        $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
+        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime( new DateTime(), false), '?'));
     }
 
     /**
@@ -41,23 +40,15 @@ class MinutesFieldTest extends TestCase
      */
     public function testIncrementsDate(): void
     {
-        $d = new DateTime('2011-03-15 11:15:00');
+        $dt = new DateTime('2011-03-15 11:15:00');
+        $d = new NextRunDateTime($dt, false);
         $f = new MinutesField();
         $f->increment($d);
         $this->assertSame('2011-03-15 11:16:00', $d->format('Y-m-d H:i:s'));
-        $f->increment($d, true);
-        $this->assertSame('2011-03-15 11:15:00', $d->format('Y-m-d H:i:s'));
-    }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
-    public function testIncrementsDateTimeImmutable(): void
-    {
-        $d = new DateTimeImmutable('2011-03-15 11:15:00');
-        $f = new MinutesField();
-        $f->increment($d);
-        $this->assertSame('2011-03-15 11:16:00', $d->format('Y-m-d H:i:s'));
+        $d = new NextRunDateTime($dt, true);
+        $f->increment($d, true);
+        $this->assertSame('2011-03-15 11:14:00', $d->format('Y-m-d H:i:s'));
     }
 
     /**

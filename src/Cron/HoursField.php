@@ -23,66 +23,67 @@ class HoursField extends AbstractField
     protected $rangeEnd = 23;
 
     /**
-     * @var bool
-     */
-    protected $lastInvert = false;
-
-    /**
-     * @var null|int
-     */
-    protected $offsetChange = null;
-
-    /**
      * {@inheritdoc}
      */
-    public function isSatisfiedBy(DateTimeInterface $date, $value, $invert): bool
+    public function isSatisfiedBy(NextRunDateTime $date, $value): bool
     {
-        if ($this->offsetChange === null) {
-            // Initial check
-            $newOffset = $date->getOffset();
-            $prevDate = clone $date;
-            $prevDate = $prevDate->modify(($invert ? '+' : '-') .'2 hour');
-            $offset = $prevDate->getOffset();
-            $this->offsetChange = ($offset - $newOffset);
-        }
         $checkValue = (int) $date->format('H');
         $retval = $this->isSatisfied($checkValue, $value);
-        if ((! $retval) && ($this->offsetChange !== 0)) {
-            $change = floor(($invert ? -$this->offsetChange : $this->offsetChange) / 3600);
-            $checkValue += (int) $change;
-            $retval = $this->isSatisfied($checkValue, $value);
+        print "HoursField: isSatisfied check: {$checkValue}\n";
+        if ($retval) {
+            return $retval;
         }
-        $this->offsetChange = null;
-        return $retval;
+
+        $offsetChange = $date->getLastChangeOffsetChange();
+        if ($offsetChange === null) {
+            // Initial check - we don't know if the offset just changed
+            print "HoursField: Manually determining offset\n";
+            $newOffset = $date->getOffset();
+            $prevDate = clone $date;
+            $prevDate->modify(($date->isMovingBackwards() ? '+' : '-') .'1 hours');
+            $offsetChange = ($newOffset - $prevDate->getOffset());
+        }
+
+        if ($offsetChange === 0) {
+            print "HoursField: offsetChange === 0 :: b? ". ($date->isMovingBackwards() ? 'true' : 'false') ."\n";
+            if ($date->isMovingBackwards()) {
+                $dtNextIncrementTest = clone $date;
+                $dtNextIncrementTest->modify("-1 hour");
+                $nextOffsetChange = $date->getOffset() - $dtNextIncrementTest->getOffset();
+                print "HoursField: nextOffsetChange: {$nextOffsetChange}\n";
+                if ($nextOffsetChange > 0) {
+                    $checkValue -= 1;
+                    print "HoursField: isSatisfied check (DST b): {$checkValue}\n";
+                    $retval = $this->isSatisfied($checkValue, $value);
+                }
+            }
+
+            return $retval;
+        }
+
+        if ($date->isMovingBackwards()) {
+            print "HoursField: backwards\n";
+            return $retval;
+        }
+
+        $change = (int)floor($offsetChange / 3600);
+        $checkValue -= $change;
+        print "HoursField: isSatisfied check (DST): {$checkValue}\n";
+        return $this->isSatisfied($checkValue, $value);
     }
 
     /**
      * {@inheritdoc}
      *
-     * @param \DateTime|\DateTimeImmutable $date
      * @param string|null                  $parts
      */
-    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
+    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
     {
-        $date = $date->setTime((int) $date->format('H'), 0);
-        $this->lastInvert = $invert;
-        $this->offsetChange = null;
-        $offset = $date->getOffset();
-        $tsCurrent = $date->getTimestamp();
-
         // Change timezone to UTC temporarily. This will
         // allow us to go back or forwards and hour even
         // if DST will be changed between the hours.
         if (null === $parts || '*' === $parts) {
-            $timezone = $date->getTimezone();
-            $date = $date->setTimezone(new DateTimeZone('UTC'));
-            $date = $date->modify(($invert ? '-' : '+') . '1 hour');
-            $date = $date->setTimezone($timezone);
-
-            $date = $date->setTime((int) $date->format('H'), ($invert ? 59 : 0));
-
-            $newOffset = $date->getOffset();
-            $this->offsetChange = ($offset - $newOffset);
+            $date->modify(($invert ? '-' : '+') . '1 hour');
             return $this;
         }
 
@@ -106,43 +107,8 @@ class HoursField extends AbstractField
             }
         }
 
-        $hour = (int) $hours[$position];
-        // Target hour causes a day change
-        if ((!$invert && $current_hour >= $hour) || ($invert && $current_hour <= $hour)) {
-            $date = $date->modify(($invert ? '-' : '+') . '1 day');
-            $date = $date->setTime(($invert ? 23 : 0), ($invert ? 59 : 0));
-
-            $newOffset = $date->getOffset();
-            $this->offsetChange = ($offset - $newOffset);
-            return $this;
-        }
-
-        $date = $date->setTime($hour, ($invert ? 59 : 0));
-
-        $newOffset = $date->getOffset();
-        $this->offsetChange = ($offset - $newOffset);
-
-        $actualHour = (int) $date->format('H');
-        // DST caused a roll-over - we're about to change zones
-        if (($current_hour !== $actualHour) && ($this->offsetChange === 0)) {
-            $nextValue = ($hour + ($invert ? -2 : 2));
-            $dstCheck = clone $date;
-            $dstCheck = $dstCheck->setTime($nextValue, ($invert ? 59 : 0));
-            $this->offsetChange = ($offset - $dstCheck->getOffset());
-        }
-
-//        if ($date->getTimestamp() === $tsCurrent) {
-        $tsActual = $date->getTimestamp();
-        if (
-            ($invert && ($tsActual >= $tsCurrent))
-            || ((! $invert) && ($tsActual <= $tsCurrent))
-        ) {
-            $timezone = $date->getTimezone();
-            $date = $date->setTimezone(new DateTimeZone('UTC'));
-            $date = $date->modify(($invert ? '-' : '+') . '1 hour');
-            $date = $date->setTimezone($timezone);
-            $this->offsetChange = ($offset - $date->getOffset());
-        }
+        $target = (int) $hours[$position];
+        $date->setHour($target);
 
         return $this;
     }

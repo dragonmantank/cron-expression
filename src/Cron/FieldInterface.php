@@ -14,13 +14,12 @@ interface FieldInterface
     /**
      * Check if the respective value of a DateTime field satisfies a CRON exp.
      *
-     * @param DateTimeInterface $date  DateTime object to check
+     * @param NextRunDateTime   $date  DateTime object to check
      * @param string            $value CRON expression to test against
-     * @param bool              $invert Direction of travel
      *
      * @return bool Returns TRUE if satisfied, FALSE otherwise
      */
-    public function isSatisfiedBy(DateTimeInterface $date, $value, $invert): bool;
+    public function isSatisfiedBy(NextRunDateTime $date, $value): bool;
 
     /**
      * When a CRON expression is not satisfied, this method is used to increment
@@ -32,7 +31,7 @@ interface FieldInterface
      *
      * @return FieldInterface
      */
-    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface;
+    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface;
 
     /**
      * Validates a CRON expression for a given field.
