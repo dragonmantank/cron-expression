@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Cron\Tests;
 
 use Cron\DayOfMonthField;
-use Cron\NextRunDateTime;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 
@@ -36,7 +35,7 @@ class DayOfMonthFieldTest extends TestCase
     public function testChecksIfSatisfied(): void
     {
         $f = new DayOfMonthField();
-        $this->assertTrue($f->isSatisfiedBy(new NextRunDateTime(new DateTime(), false), '?'));
+        $this->assertTrue($f->isSatisfiedBy(new DateTime(), '?', false));
     }
 
     /**
@@ -44,14 +43,12 @@ class DayOfMonthFieldTest extends TestCase
      */
     public function testIncrementsDate(): void
     {
-        $dt = new DateTime('2011-03-15 11:15:00');
-        $d = new NextRunDateTime($dt, false);
+        $d = new DateTime('2011-03-15 11:15:00');
         $f = new DayOfMonthField();
         $f->increment($d);
         $this->assertSame('2011-03-16 00:00:00', $d->format('Y-m-d H:i:s'));
 
-        $dt = new DateTime('2011-03-15 11:15:00');
-        $d = new NextRunDateTime($dt, true);
+        $d = new DateTime('2011-03-15 11:15:00');
         $f->increment($d, true);
         $this->assertSame('2011-03-14 23:59:00', $d->format('Y-m-d H:i:s'));
     }

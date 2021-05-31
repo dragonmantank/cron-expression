@@ -79,7 +79,7 @@ class DayOfMonthField extends AbstractField
     /**
      * {@inheritdoc}
      */
-    public function isSatisfiedBy(NextRunDateTime $date, $value): bool
+    public function isSatisfiedBy(DateTimeInterface $date, $value, bool $invert): bool
     {
         // ? states that the field value is to be skipped
         if ('?' === $value) {
@@ -115,9 +115,15 @@ class DayOfMonthField extends AbstractField
      *
      * @param \DateTime|\DateTimeImmutable $date
      */
-    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
+    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
-        $date->incrementDay();
+        if (! $invert) {
+            $this->timezoneSafeModify($date, '+1 day');
+            $date->setTime(0, 0);
+        } else {
+            $this->timezoneSafeModify($date, '-1 day');
+            $date->setTime(23, 59);
+        }
 
         return $this;
     }

@@ -23,9 +23,24 @@ class HoursField extends AbstractField
     protected $rangeEnd = 23;
 
     /**
+     * @var array|null Transitions returned by DateTimeZone::getTransitions()
+     */
+    protected $transitions = null;
+
+    /**
+     * @var int|null Timestamp of the start of the transitions range
+     */
+    protected $transitionsStart = null;
+
+    /**
+     * @var int|null Timestamp of the end of the transitions range
+     */
+    protected $transitionsEnd = null;
+
+    /**
      * {@inheritdoc}
      */
-    public function isSatisfiedBy(NextRunDateTime $date, $value): bool
+    public function isSatisfiedBy(DateTimeInterface $date, $value, bool $invert): bool
     {
         $checkValue = (int) $date->format('H');
         $retval = $this->isSatisfied($checkValue, $value);
@@ -33,54 +48,87 @@ class HoursField extends AbstractField
             return $retval;
         }
 
-        if (! $date->isMovingBackwards()) {
-            // Did time just leap forward by an hour?
-            $lastTransition = $date->getPastTransition();
-            if (($lastTransition !== null) && ($lastTransition["ts"] > ($date->getTimestamp() - 3600))) {
-                $dtLastOffset = clone $date;
-                $dtLastOffset->modify("-1 hour");
-                $lastOffset = $dtLastOffset->getOffset();
+        // Are we on the edge of a transition
+        $lastTransition = $this->getPastTransition($date);
+        if (($lastTransition !== null) && ($lastTransition["ts"] > ($date->format('U') - 3600))) {
+            $dtLastOffset = clone $date;
+            $this->timezoneSafeModify($dtLastOffset, "-1 hour");
+            $lastOffset = $dtLastOffset->getOffset();
 
-                $offsetChange = $lastTransition["offset"] - $lastOffset;
-                if ($offsetChange >= 3600) {
-                    $checkValue -= 1;
-                    return $this->isSatisfied($checkValue, $value);
-                } elseif ($offsetChange <= -3600) {
-                    $checkValue += 1;
-                    return $this->isSatisfied($checkValue, $value);
-                }
+            $dtNextOffset = clone $date;
+            $this->timezoneSafeModify($dtNextOffset, "+1 hour");
+            $nextOffset = $dtNextOffset->getOffset();
+
+            $offsetChange = $nextOffset - $lastOffset;
+            if ($offsetChange >= 3600) {
+                $checkValue -= 1;
+                return $this->isSatisfied($checkValue, $value);
             }
-        } else {
-            // Is time about to jump (from our backwards travelling pov) an extra hour?
-            $nextTransition = $date->getPastTransition();
-            if (($nextTransition !== null) && ($nextTransition["ts"] > ($date->getTimestamp() - 3600))) {
-                $dtNextOffset = clone $date;
-                $dtNextOffset->modify("-1 hour");
-                $nextOffset = $dtNextOffset->getOffset();
-
-                $offsetChange = $date->getOffset() - $nextOffset;
-                if ($offsetChange >= 3600) {
-                    $checkValue -= 1;
-                    return $this->isSatisfied($checkValue, $value);
-                }
+            if ((! $invert) && ($offsetChange <= -3600)) {
+                $checkValue += 1;
+                return $this->isSatisfied($checkValue, $value);
             }
         }
 
         return $retval;
     }
 
+
+    public function getPastTransition(DateTimeInterface $date): ?array
+    {
+        $currentTimestamp = (int) $date->format('U');
+        if (
+            ($this->transitions === null)
+            || ($this->transitionsStart < ($currentTimestamp + 86400))
+            || ($this->transitionsEnd > ($currentTimestamp - 86400))
+        ) {
+            // We start a day before current time so we can differentiate between the first transition entry
+            // and a change that happens now
+            $dtLimitStart = clone $date;
+            $dtLimitStart = $dtLimitStart->modify("-12 months");
+            $dtLimitEnd = clone $date;
+            $dtLimitEnd = $dtLimitEnd->modify('+12 months');
+
+            $this->transitions = $date->getTimezone()->getTransitions(
+                $dtLimitStart->getTimestamp(),
+                $dtLimitEnd->getTimestamp()
+            );
+            $this->transitionsStart = $dtLimitStart->getTimestamp();
+            $this->transitionsEnd = $dtLimitEnd->getTimestamp();
+        }
+
+        $nextTransition = null;
+        foreach ($this->transitions as $transition) {
+            if ($transition["ts"] > $currentTimestamp) {
+                continue;
+            }
+
+            if (($nextTransition !== null) && ($transition["ts"] < $nextTransition["ts"])) {
+                continue;
+            }
+
+            $nextTransition = $transition;
+        }
+
+        return ($nextTransition ?? null);
+    }
+
+
     /**
      * {@inheritdoc}
      *
      * @param string|null                  $parts
      */
-    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
+    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
+        $originalTimestamp = (int) $date->format('U');
+
         // Change timezone to UTC temporarily. This will
         // allow us to go back or forwards and hour even
         // if DST will be changed between the hours.
         if (null === $parts || '*' === $parts) {
-            $date->incrementHour();
+            $date = $this->timezoneSafeModify($date, ($invert ? "-" : "+") ."1 hour");
+            $date = $this->setTimeHour($date, $invert, $originalTimestamp);
             return $this;
         }
 
@@ -105,8 +153,55 @@ class HoursField extends AbstractField
         }
 
         $target = (int) $hours[$position];
-        $date->setHour($target);
+        $originalHour = (int)$date->format('H');
+
+        $originalDay = (int)$date->format('d');
+        $previousOffset = $date->getOffset();
+
+        if (! $invert) {
+            if ($originalHour >= $target) {
+                $distance = 24 - $originalHour;
+                $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+
+                $actualDay = (int)$date->format('d');
+                $actualHour = (int)$date->format('H');
+                if (($actualDay !== ($originalDay + 1)) && ($actualHour !== 0)) {
+                    $offsetChange = ($previousOffset - $date->getOffset());
+                    $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                }
+
+                $originalHour = (int)$date->format('H');
+            }
+
+            $distance = $target - $originalHour;
+            $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+        } else {
+            if ($originalHour <= $target) {
+                $distance = ($originalHour + 1);
+                $date = $this->timezoneSafeModify($date, "-" . $distance . " hours");
+
+                $actualDay = (int)$date->format('d');
+                $actualHour = (int)$date->format('H');
+                if (($actualDay !== ($originalDay - 1)) && ($actualHour !== 23)) {
+                    $offsetChange = ($previousOffset - $date->getOffset());
+                    $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                }
+
+                $originalHour = (int)$date->format('H');
+            }
+
+            $distance = $originalHour - $target;
+            $date = $this->timezoneSafeModify($date, "-{$distance} hours");
+        }
+
+        $date = $this->setTimeHour($date, $invert, $originalTimestamp);
+
+        $actualHour = (int)$date->format('H');
+        if ($invert && ($actualHour === ($target - 1) || (($actualHour === 23) && ($target === 0)))) {
+            $date = $this->timezoneSafeModify($date, "+1 hour");
+        }
 
         return $this;
     }
+
 }

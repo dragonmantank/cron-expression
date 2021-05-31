@@ -24,13 +24,12 @@ class MinutesField extends AbstractField
     /**
      * {@inheritdoc}
      */
-    public function isSatisfiedBy(NextRunDateTime $date, $value):bool
+    public function isSatisfiedBy(DateTimeInterface $date, $value, bool $invert):bool
     {
         if ($value === '?') {
             return true;
         }
 
-        // FIXME Some zones change offset by minutes
         return $this->isSatisfied((int)$date->format('i'), $value);
     }
 
@@ -40,10 +39,10 @@ class MinutesField extends AbstractField
      *
      * @param string|null                  $parts
      */
-    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
+    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
-        if (is_null($parts) || ($parts === '*')) {
-            $date->modify(($invert ? '-' : '+'). '1 minute');
+        if (is_null($parts)) {
+            $date = $date->modify(($invert ? '-' : '+'). '1 minute');
             return $this;
         }
 
@@ -68,7 +67,29 @@ class MinutesField extends AbstractField
         }
 
         $target = (int) $minutes[$position];
-        $date->setMinutes($target);
+        $originalMinute = (int) $date->format("i");
+
+        if (! $invert) {
+            if ($originalMinute >= $target) {
+                $distance = 60 - $originalMinute;
+                $date = $this->timezoneSafeModify($date, "+{$distance} minutes");
+
+                $originalMinute = (int) $date->format("i");
+            }
+
+            $distance = $target - $originalMinute;
+            $date = $this->timezoneSafeModify($date, "+{$distance} minutes");
+        } else {
+            if ($originalMinute <= $target) {
+                $distance = ($originalMinute + 1);
+                $date = $this->timezoneSafeModify($date, "-{$distance} minutes");
+
+                $originalMinute = (int) $date->format("i");
+            }
+
+            $distance = $originalMinute - $target;
+            $date = $this->timezoneSafeModify($date, "-{$distance} minutes");
+        }
 
         return $this;
     }

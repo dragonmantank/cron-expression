@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Cron;
 
-use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
 
@@ -55,7 +54,7 @@ class DayOfWeekField extends AbstractField
     /**
      * @inheritDoc
      */
-    public function isSatisfiedBy(NextRunDateTime $date, $value): bool
+    public function isSatisfiedBy(DateTimeInterface $date, $value, bool $invert): bool
     {
         if ('?' === $value) {
             return true;
@@ -74,8 +73,9 @@ class DayOfWeekField extends AbstractField
             $weekday = $this->convertLiterals(substr($value, 0, strpos($value, 'L')));
             $weekday %= 7;
 
-            $remainingDaysInMonth = $date->getRemainingDaysInMonth();
-            return (($weekday === (int)$date->format('w')) && ($remainingDaysInMonth < 7));
+            $daysInMonth = (int) $date->format('t');
+            $remainingDaysInMonth = $daysInMonth - (int) $date->format('d');
+            return (($weekday === (int) $date->format('w')) && ($remainingDaysInMonth < 7));
         }
 
         // Handle # hash tokens
@@ -109,7 +109,7 @@ class DayOfWeekField extends AbstractField
                 return false;
             }
 
-            $tdate = $date->getDateTime();
+            $tdate = clone $date;
             $tdate = $tdate->setDate($currentYear, $currentMonth, 1);
             $dayCount = 0;
             $currentDay = 1;
@@ -148,9 +148,15 @@ class DayOfWeekField extends AbstractField
     /**
      * @inheritDoc
      */
-    public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
+    public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
-        $date->incrementDay();
+        if (! $invert) {
+            $this->timezoneSafeModify($date, '+1 day');
+            $date->setTime(0, 0);
+        } else {
+            $this->timezoneSafeModify($date, '-1 day');
+            $date->setTime(23, 59);
+        }
 
         return $this;
     }
