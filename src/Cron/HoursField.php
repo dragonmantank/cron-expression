@@ -29,91 +29,44 @@ class HoursField extends AbstractField
     {
         $checkValue = (int) $date->format('H');
         $retval = $this->isSatisfied($checkValue, $value);
-        print "HoursField: isSatisfied check: {$checkValue}\n";
         if ($retval) {
             return $retval;
         }
 
-        // FIXME Does this break for transitions of 30 minutes
         if (! $date->isMovingBackwards()) {
             // Did time just leap forward by an hour?
             $lastTransition = $date->getPastTransition();
-            print "Past transition: ". ($lastTransition["ts"] ?? "none") . " :: ". $date->getTimestamp() ."\n";
             if (($lastTransition !== null) && ($lastTransition["ts"] > ($date->getTimestamp() - 3600))) {
                 $dtLastOffset = clone $date;
                 $dtLastOffset->modify("-1 hour");
                 $lastOffset = $dtLastOffset->getOffset();
 
                 $offsetChange = $lastTransition["offset"] - $lastOffset;
-                print "HoursField: DST offset change: {$offsetChange}\n";
                 if ($offsetChange >= 3600) {
                     $checkValue -= 1;
-                    print "HoursField: isSatisfied check (DST f): {$checkValue}\n";
                     return $this->isSatisfied($checkValue, $value);
                 } elseif ($offsetChange <= -3600) {
                     $checkValue += 1;
-                    print "HoursField: isSatisfied check (DST f): {$checkValue}\n";
                     return $this->isSatisfied($checkValue, $value);
                 }
             }
         } else {
             // Is time about to jump (from our backwards travelling pov) an extra hour?
             $nextTransition = $date->getPastTransition();
-            print "Next transition: ". ($nextTransition["ts"] ?? "none") . " :: ". $date->getTimestamp() ."\n";
             if (($nextTransition !== null) && ($nextTransition["ts"] > ($date->getTimestamp() - 3600))) {
                 $dtNextOffset = clone $date;
                 $dtNextOffset->modify("-1 hour");
                 $nextOffset = $dtNextOffset->getOffset();
 
                 $offsetChange = $date->getOffset() - $nextOffset;
-                print "HoursField: DST offset change: {$offsetChange}\n";
                 if ($offsetChange >= 3600) {
                     $checkValue -= 1;
-                    print "HoursField: isSatisfied check (DST b): {$checkValue}\n";
                     return $this->isSatisfied($checkValue, $value);
                 }
             }
         }
 
         return $retval;
-        /*
-        $offsetChange = $date->getLastChangeOffsetChange();
-        if ($offsetChange === null) {
-            // Initial check - we don't know if the offset just changed
-            print "HoursField: Manually determining offset\n";
-            $newOffset = $date->getOffset();
-            $prevDate = clone $date;
-            $prevDate->modify(($date->isMovingBackwards() ? '+' : '-') .'1 hours');
-            $offsetChange = ($newOffset - $prevDate->getOffset());
-        }
-
-        if ($offsetChange === 0) {
-            print "HoursField: offsetChange === 0 :: b? ". ($date->isMovingBackwards() ? 'true' : 'false') ."\n";
-            if ($date->isMovingBackwards()) {
-                $dtNextIncrementTest = clone $date;
-                $dtNextIncrementTest->modify("-1 hour");
-                $nextOffsetChange = $date->getOffset() - $dtNextIncrementTest->getOffset();
-                print "HoursField: nextOffsetChange: {$nextOffsetChange}\n";
-                if ($nextOffsetChange > 0) {
-                    $checkValue -= 1;
-                    print "HoursField: isSatisfied check (DST b): {$checkValue}\n";
-                    $retval = $this->isSatisfied($checkValue, $value);
-                }
-            }
-
-            return $retval;
-        }
-
-        if ($date->isMovingBackwards()) {
-            print "HoursField: backwards\n";
-            return $retval;
-        }
-
-        $change = (int)floor($offsetChange / 3600);
-        $checkValue -= $change;
-        print "HoursField: isSatisfied check (DST): {$checkValue}\n";
-        return $this->isSatisfied($checkValue, $value);
-        */
     }
 
     /**

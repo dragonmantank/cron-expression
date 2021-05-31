@@ -347,9 +347,6 @@ class DaylightSavingsTest extends TestCase
 
         $dtCurrent = $this->createDateTimeExactly("2020-10-24 22:00+01:00", $tz);
         $actual = $cron->getMultipleRunDates(5, $dtCurrent, false, true, $tz->getName());
-        foreach ($actual as $key => $dtActual) {
-            print $key ." :: ". $dtActual->format(\DateTime::RFC3339 ." e") ."\n";
-        }
         foreach ($expected as $dtExpected) {
             $this->assertContainsEquals($dtExpected, $actual);
         }
@@ -395,6 +392,62 @@ class DaylightSavingsTest extends TestCase
         ];
 
         $dtCurrent = $this->createDateTimeExactly("2020-10-25 07:00+00:00", $tz);
+        $actual = $cron->getMultipleRunDates(5, $dtCurrent, true, true, $tz->getName());
+        foreach ($expected as $dtExpected) {
+            $this->assertContainsEquals($dtExpected, $actual);
+        }
+    }
+
+
+    public function testOffsetIncrementsMidnight(): void
+    {
+        $expression = '@hourly';
+        $cron = new CronExpression($expression);
+        $tz = new \DateTimeZone("America/Asuncion");
+
+        $expected = [
+            $this->createDateTimeExactly("2021-03-27 22:00-03:00", $tz),
+            $this->createDateTimeExactly("2021-03-27 23:00-03:00", $tz),
+            $this->createDateTimeExactly("2021-03-27 23:00-04:00", $tz),
+            $this->createDateTimeExactly("2021-03-28 00:00-04:00", $tz),
+            $this->createDateTimeExactly("2021-03-28 01:00-04:00", $tz),
+        ];
+
+        $dtCurrent = $this->createDateTimeExactly("2021-03-27 22:00-03:00", $tz);
+        $actual = $cron->getMultipleRunDates(5, $dtCurrent, false, true, $tz->getName());
+        foreach ($expected as $dtExpected) {
+            $this->assertContainsEquals($dtExpected, $actual);
+        }
+
+        $dtCurrent = $this->createDateTimeExactly("2021-03-28 01:00-04:00", $tz);
+        $actual = $cron->getMultipleRunDates(5, $dtCurrent, true, true, $tz->getName());
+        foreach ($expected as $dtExpected) {
+            $this->assertContainsEquals($dtExpected, $actual);
+        }
+    }
+
+
+    public function testOffsetDecrementsMidnight(): void
+    {
+        $expression = '@hourly';
+        $cron = new CronExpression($expression);
+        $tz = new \DateTimeZone("America/Asuncion");
+
+        $expected = [
+            $this->createDateTimeExactly("2020-10-03 22:00-04:00", $tz),
+            $this->createDateTimeExactly("2020-10-03 23:00-04:00", $tz),
+            $this->createDateTimeExactly("2020-10-04 01:00-03:00", $tz),
+            $this->createDateTimeExactly("2020-10-04 02:00-03:00", $tz),
+            $this->createDateTimeExactly("2020-10-04 03:00-03:00", $tz),
+        ];
+
+        $dtCurrent = $this->createDateTimeExactly("2020-10-03 22:00-04:00", $tz);
+        $actual = $cron->getMultipleRunDates(5, $dtCurrent, false, true, $tz->getName());
+        foreach ($expected as $dtExpected) {
+            $this->assertContainsEquals($dtExpected, $actual);
+        }
+
+        $dtCurrent = $this->createDateTimeExactly("2020-10-04 03:00-03:00", $tz);
         $actual = $cron->getMultipleRunDates(5, $dtCurrent, true, true, $tz->getName());
         foreach ($expected as $dtExpected) {
             $this->assertContainsEquals($dtExpected, $actual);

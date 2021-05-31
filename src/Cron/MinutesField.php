@@ -43,7 +43,6 @@ class MinutesField extends AbstractField
     public function increment(NextRunDateTime $date, $invert = false, $parts = null): FieldInterface
     {
         if (is_null($parts) || ($parts === '*')) {
-            print "MinutesField: quick increment\n";
             $date->modify(($invert ? '-' : '+'). '1 minute');
             return $this;
         }
