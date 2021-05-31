@@ -75,7 +75,7 @@ class DayOfWeekField extends AbstractField
             $weekday %= 7;
 
             $remainingDaysInMonth = $date->getRemainingDaysInMonth();
-            return (($date->format('w') === $weekday) && ($remainingDaysInMonth < 7));
+            return (($weekday === (int)$date->format('w')) && ($remainingDaysInMonth < 7));
         }
 
         // Handle # hash tokens

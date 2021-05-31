@@ -321,9 +321,7 @@ class NextRunDateTime
 
     public function getRemainingDaysInMonth(): int
     {
-        $dtLastDay = clone $this->dt;
-        $dtLastDay->modify("last day of this month");
-        $daysInMonth = (int)$dtLastDay->format('d');
+        $daysInMonth = (int) $this->format('t');
         return $daysInMonth - (int)$this->dt->format('d');
     }
 
