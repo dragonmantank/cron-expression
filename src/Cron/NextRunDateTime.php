@@ -15,20 +15,9 @@ class NextRunDateTime
     protected $dt;
 
     /**
-     * @var null|int The offset change triggered by the last modification in seconds
-     *  Relative to the direction of movement, so a DST change of +1 hour is 3600 moving forwards and -3600 moving backwards
-     */
-    protected $lastChangeOffsetChange = null;
-
-    /**
      * @var bool
      */
     protected $moveBackwards;
-
-    /**
-     * @var DateTimeZone Cached timezone (for timezoneSafeModify())
-     */
-    protected $timezone;
 
     /**
      * @var array|null Transitions returned by DateTimeZone::getTransitions()
@@ -53,19 +42,13 @@ class NextRunDateTime
 
     public function __construct(\DateTimeInterface $dateTime, bool $moveBackwards)
     {
-        $this->timezone = $dateTime->getTimezone();
+        $timezone = $dateTime->getTimezone();
         // Clone the date/time value, but zero-out fields we don't care about
         // Don't use setTime because it can cause an offset change: https://bugs.php.net/bug.php?id=81074
-        $this->dt = DateTime::createFromFormat("!Y-m-d H:iO", $dateTime->format("Y-m-d H:iP"), $this->timezone);
-        $this->dt->setTimezone($this->timezone);
+        $this->dt = DateTime::createFromFormat("!Y-m-d H:iO", $dateTime->format("Y-m-d H:iP"), $timezone);
+        $this->dt->setTimezone($timezone);
         $this->tzUtc = new DateTimeZone("UTC");
         $this->moveBackwards = $moveBackwards;
-    }
-
-
-    public function getLastChangeOffsetChange(): ?int
-    {
-        return $this->lastChangeOffsetChange;
     }
 
 
@@ -102,7 +85,7 @@ class NextRunDateTime
                 $dtLimitEnd = $dtLimitEnd->modify('+2 days');
             }
 
-            $this->transitions = $this->timezone->getTransitions(
+            $this->transitions = $this->dt->getTimezone()->getTransitions(
                 $dtLimitStart->getTimestamp(),
                 $dtLimitEnd->getTimestamp()
             );
@@ -130,9 +113,10 @@ class NextRunDateTime
 
     protected function timezoneSafeModify(string $modification): void
     {
+        $timezone = $this->dt->getTimezone();
         $this->dt->setTimezone($this->tzUtc);
         $this->dt->modify($modification);
-        $this->dt->setTimezone($this->timezone);
+        $this->dt->setTimezone($timezone);
     }
 
 
