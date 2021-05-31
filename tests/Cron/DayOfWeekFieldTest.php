@@ -6,6 +6,7 @@ namespace Cron\Tests;
 
 use Cron\DayOfWeekField;
 use DateTime;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -37,6 +38,7 @@ class DayOfWeekFieldTest extends TestCase
     {
         $f = new DayOfWeekField();
         $this->assertTrue($f->isSatisfiedBy(new DateTime(), '?', false));
+        $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
     }
 
     /**
@@ -52,6 +54,17 @@ class DayOfWeekFieldTest extends TestCase
         $d = new DateTime('2011-03-15 11:15:00');
         $f->increment($d, true);
         $this->assertSame('2011-03-14 23:59:00', $d->format('Y-m-d H:i:s'));
+    }
+
+    /**
+     * @covers \Cron\DayOfWeekField::increment
+     */
+    public function testIncrementsDateTimeImmutable(): void
+    {
+        $d = new DateTimeImmutable('2011-03-15 11:15:00');
+        $f = new DayOfWeekField();
+        $f->increment($d);
+        $this->assertSame('2011-03-16 00:00:00', $d->format('Y-m-d H:i:s'));
     }
 
     /**

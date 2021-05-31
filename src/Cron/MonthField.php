@@ -49,11 +49,11 @@ class MonthField extends AbstractField
     public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
         if (! $invert) {
-            $date->modify('first day of next month');
-            $date->setTime(0, 0);
+            $date = $date->modify('first day of next month');
+            $date = $date->setTime(0, 0);
         } else {
-            $date->modify('last day of previous month');
-            $date->setTime(23, 59);
+            $date = $date->modify('last day of previous month');
+            $date = $date->setTime(23, 59);
         }
 
         return $this;

@@ -118,11 +118,11 @@ class DayOfMonthField extends AbstractField
     public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
         if (! $invert) {
-            $this->timezoneSafeModify($date, '+1 day');
-            $date->setTime(0, 0);
+            $date = $this->timezoneSafeModify($date, '+1 day');
+            $date = $date->setTime(0, 0);
         } else {
-            $this->timezoneSafeModify($date, '-1 day');
-            $date->setTime(23, 59);
+            $date = $this->timezoneSafeModify($date, '-1 day');
+            $date = $date->setTime(23, 59);
         }
 
         return $this;
