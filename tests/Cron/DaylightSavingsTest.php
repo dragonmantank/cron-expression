@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 
 class DaylightSavingsTest extends TestCase
 {
-
     public function testIssue111(): void
     {
         $expression = "0 1 * * 0";
