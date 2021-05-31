@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 class DaylightSavingsTest extends TestCase
 {
 
-
     public function testIssue111(): void
     {
         $expression = "0 1 * * 0";
@@ -27,7 +26,6 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($dtExpected, $dtActual);
     }
 
-
     public function testIssue112(): void
     {
         $expression = "15 2 * * 0";
@@ -38,7 +36,6 @@ class DaylightSavingsTest extends TestCase
         $dtExpected = $this->createDateTimeExactly("2021-03-14 03:15-05:00", $tz);
         $this->assertEquals($dtExpected, $cron->getNextRunDate($dtCurrent));
     }
-
 
     /**
      * Create a DateTimeImmutable that represents the given exact moment in time.
@@ -54,7 +51,6 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($timezone->getName(), $dt->format("e"));
         return $dt;
     }
-
 
     public function testOffsetIncrementsNextRunDate(): void
     {
@@ -86,7 +82,6 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($dtExpected, $cron->getNextRunDate($dtCurrent, 0, false, $tz->getName()));
     }
 
-
     public function testOffsetIncrementsPreviousRunDate(): void
     {
         $tz = new \DateTimeZone("Europe/London");
@@ -117,7 +112,6 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($dtExpected, $cron->getPreviousRunDate($dtCurrent, 0, false, $tz->getName()));
     }
 
-
     public function testOffsetDecrementsNextRunDateAllowCurrent(): void
     {
         $tz = new \DateTimeZone("Europe/London");
@@ -147,7 +141,6 @@ class DaylightSavingsTest extends TestCase
         $dtExpected = $this->createDateTimeExactly("2020-11-01 01:00+00:00", $tz);
         $this->assertEquals($dtExpected, $cron->getNextRunDate($dtCurrent, 0, true, $tz->getName()));
     }
-
 
     /**
      * The fact that crons will run twice using this setup is expected.
@@ -187,7 +180,6 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($dtExpected, $cron->getNextRunDate($dtCurrent, 0, false, $tz->getName()));
     }
 
-
     public function testOffsetDecrementsPreviousRunDate(): void
     {
         $tz = new \DateTimeZone("Europe/London");
@@ -209,7 +201,6 @@ class DaylightSavingsTest extends TestCase
         $dtExpected = $this->createDateTimeExactly("2021-03-21 01:00+00:00", $tz);
         $this->assertEquals($dtExpected, $cron->getPreviousRunDate($dtCurrent, 0, false, $tz->getName()));
     }
-
 
     public function testOffsetIncrementsMultipleRunDates(): void
     {
@@ -237,7 +228,6 @@ class DaylightSavingsTest extends TestCase
             $this->assertContainsEquals($dtExpected, $actual);
         }
     }
-
 
     public function testOffsetDecrementsMultipleRunDates(): void
     {
@@ -274,7 +264,6 @@ class DaylightSavingsTest extends TestCase
             $this->assertContainsEquals($dtExpected, $actual);
         }
     }
-
 
     public function testOffsetIncrementsEveryOtherHour(): void
     {
@@ -326,7 +315,6 @@ class DaylightSavingsTest extends TestCase
             $this->assertContainsEquals($dtExpected, $actual);
         }
     }
-
 
     public function testOffsetDecrementsEveryOtherHour(): void
     {
@@ -395,7 +383,6 @@ class DaylightSavingsTest extends TestCase
         }
     }
 
-
     public function testOffsetIncrementsMidnight(): void
     {
         $expression = '@hourly';
@@ -422,7 +409,6 @@ class DaylightSavingsTest extends TestCase
             $this->assertContainsEquals($dtExpected, $actual);
         }
     }
-
 
     public function testOffsetDecrementsMidnight(): void
     {

@@ -73,7 +73,6 @@ class HoursField extends AbstractField
         return $retval;
     }
 
-
     public function getPastTransition(DateTimeInterface $date): ?array
     {
         $currentTimestamp = (int) $date->format('U');
@@ -112,7 +111,6 @@ class HoursField extends AbstractField
 
         return ($nextTransition ?? null);
     }
-
 
     /**
      * {@inheritdoc}
@@ -203,5 +201,4 @@ class HoursField extends AbstractField
 
         return $this;
     }
-
 }

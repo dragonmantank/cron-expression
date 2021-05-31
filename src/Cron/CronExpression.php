@@ -225,7 +225,6 @@ class CronExpression
         return $this->getRunDate($currentTime, $nth, true, $allowCurrentDate, $timeZone);
     }
 
-
     /**
      * Get multiple run dates starting at the current date or a specific date.
      *

@@ -93,5 +93,4 @@ class MinutesField extends AbstractField
 
         return $this;
     }
-
 }

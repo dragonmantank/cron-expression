@@ -303,7 +303,6 @@ abstract class AbstractField implements FieldInterface
         return \in_array($value, $this->fullRange, true);
     }
 
-
     protected function timezoneSafeModify(DateTimeInterface $dt, string $modification): DateTimeInterface
     {
         $timezone = $dt->getTimezone();
@@ -312,7 +311,6 @@ abstract class AbstractField implements FieldInterface
         $dt = $dt->setTimezone($timezone);
         return $dt;
     }
-
 
     protected function setTimeHour(DateTimeInterface $date, bool $invert, int $originalTimestamp): DateTimeInterface
     {
@@ -328,5 +326,4 @@ abstract class AbstractField implements FieldInterface
 
         return $date;
     }
-
 }
