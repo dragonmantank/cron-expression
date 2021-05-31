@@ -328,9 +328,6 @@ class DaylightSavingsTest extends TestCase
     }
 
 
-    /**
-     * @fixme Inconsistent between running forwards and backwards
-     */
     public function testOffsetDecrementsEveryOtherHour(): void
     {
         $expression = "0 */2 * * *";
