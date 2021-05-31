@@ -424,7 +424,8 @@ class CronExpression
                         }
                     }
                 }
-                print "Part ". $positions[$position] ." :: Satisfied: ". ($satisfied ? 'TRUE' : 'false') ."\n";
+                print $nextRun->format(\DateTime::RFC3339 ." e") . "Part ". $positions[$position]
+                    ." :: Satisfied: ". ($satisfied ? 'TRUE' : 'false') ."\n";
 
                 // If the field is not satisfied, then start over
                 if (!$satisfied) {
@@ -435,7 +436,7 @@ class CronExpression
             }
 
             // Skip this match if needed
-            if ((!$allowCurrentDate && $nextRun == $currentDate) || --$nth > -1) {
+            if ((!$allowCurrentDate && $nextRun->getDateTime() == $currentDate->getDateTime()) || --$nth > -1) {
                 print "SKIP :: ";
                 print ($nextRun == $currentDate ? 'Match' : 'No match')  ." :: ". $nextRun->format(\DateTime::RFC3339 ." e")
                      ." =? ". $currentDate->format(\DateTime::RFC3339 ." e")." :: {$nth}\n";

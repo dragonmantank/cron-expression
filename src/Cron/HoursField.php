@@ -34,6 +34,49 @@ class HoursField extends AbstractField
             return $retval;
         }
 
+        // FIXME Does this break for transitions of 30 minutes
+        if (! $date->isMovingBackwards()) {
+            // Did time just leap forward by an hour?
+            $lastTransition = $date->getPastTransition();
+            print "Past transition: ". ($lastTransition["ts"] ?? "none") . " :: ". $date->getTimestamp() ."\n";
+            if (($lastTransition !== null) && ($lastTransition["ts"] > ($date->getTimestamp() - 3600))) {
+                $dtLastOffset = clone $date;
+                $dtLastOffset->modify("-1 hour");
+                $lastOffset = $dtLastOffset->getOffset();
+
+                $offsetChange = $lastTransition["offset"] - $lastOffset;
+                print "HoursField: DST offset change: {$offsetChange}\n";
+                if ($offsetChange >= 3600) {
+                    $checkValue -= 1;
+                    print "HoursField: isSatisfied check (DST f): {$checkValue}\n";
+                    return $this->isSatisfied($checkValue, $value);
+                } elseif ($offsetChange <= -3600) {
+                    $checkValue += 1;
+                    print "HoursField: isSatisfied check (DST f): {$checkValue}\n";
+                    return $this->isSatisfied($checkValue, $value);
+                }
+            }
+        } else {
+            // Is time about to jump (from our backwards travelling pov) an extra hour?
+            $nextTransition = $date->getPastTransition();
+            print "Next transition: ". ($nextTransition["ts"] ?? "none") . " :: ". $date->getTimestamp() ."\n";
+            if (($nextTransition !== null) && ($nextTransition["ts"] > ($date->getTimestamp() - 3600))) {
+                $dtNextOffset = clone $date;
+                $dtNextOffset->modify("-1 hour");
+                $nextOffset = $dtNextOffset->getOffset();
+
+                $offsetChange = $date->getOffset() - $nextOffset;
+                print "HoursField: DST offset change: {$offsetChange}\n";
+                if ($offsetChange >= 3600) {
+                    $checkValue -= 1;
+                    print "HoursField: isSatisfied check (DST b): {$checkValue}\n";
+                    return $this->isSatisfied($checkValue, $value);
+                }
+            }
+        }
+
+        return $retval;
+        /*
         $offsetChange = $date->getLastChangeOffsetChange();
         if ($offsetChange === null) {
             // Initial check - we don't know if the offset just changed
@@ -70,6 +113,7 @@ class HoursField extends AbstractField
         $checkValue -= $change;
         print "HoursField: isSatisfied check (DST): {$checkValue}\n";
         return $this->isSatisfied($checkValue, $value);
+        */
     }
 
     /**

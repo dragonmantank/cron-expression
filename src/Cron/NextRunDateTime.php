@@ -31,6 +31,21 @@ class NextRunDateTime
     protected $timezone;
 
     /**
+     * @var array|null Transitions returned by DateTimeZone::getTransitions()
+     */
+    protected $transitions = null;
+
+    /**
+     * @var int|null Timestamp of the start of the transitions range
+     */
+    protected $transitionsStart = null;
+
+    /**
+     * @var int|null Timestamp of the end of the transitions range
+     */
+    protected $transitionsEnd = null;
+
+    /**
      * @var DateTimeZone (Always UTC)
      */
     protected $tzUtc;
@@ -63,6 +78,58 @@ class NextRunDateTime
     public function getDateTime(): DateTime
     {
         return clone $this->dt;
+    }
+
+
+    public function getPastTransition(): ?array
+    {
+        $currentTimestamp = $this->getTimestamp();
+        if (
+            ($this->transitions === null)
+            || ((! $this->moveBackwards) && ($this->transitionsStart < ($currentTimestamp + 86400)))
+            || ($this->moveBackwards && ($this->transitionsEnd > ($currentTimestamp - 86400)))
+        ) {
+            // We start a day before current time so we can differentiate between the first transition entry
+            // and a change that happens now
+            $dtLimitStart = clone $this->dt;
+            if (! $this->moveBackwards) {
+                $dtLimitStart = $dtLimitStart->modify("-2 days");
+                $dtLimitEnd = clone $dtLimitStart;
+                $dtLimitEnd = $dtLimitEnd->modify('+12 months');
+            } else {
+                $dtLimitStart = $dtLimitStart->modify("-12 months");
+                $dtLimitEnd = clone $this->dt;
+                $dtLimitEnd = $dtLimitEnd->modify('+2 days');
+            }
+
+            $this->transitions = $this->timezone->getTransitions(
+                $dtLimitStart->getTimestamp(),
+                $dtLimitEnd->getTimestamp()
+            );
+            $this->transitionsStart = $dtLimitStart->getTimestamp();
+            $this->transitionsEnd = $dtLimitEnd->getTimestamp();
+        }
+
+        var_dump($this->transitions);
+        $nextTransition = null;
+        $currentTimestamp = $this->getTimestamp();
+        foreach ($this->transitions as $transition) {
+            $this->log(__METHOD__, "Checking transition: ". $transition['ts']);
+            if ($transition["ts"] > $currentTimestamp) {
+                $this->log(__METHOD__, "SKIP - In future: ". $transition['ts']);
+                continue;
+            }
+
+            if (($nextTransition !== null) && ($transition["ts"] < $nextTransition["ts"])) {
+                $this->log(__METHOD__, "SKIP - Not next transition: ". $transition['ts']);
+                continue;
+            }
+
+            $this->log(__METHOD__, "setting next transition to ". $transition['ts']);
+            $nextTransition = $transition;
+        }
+
+        return ($nextTransition ?? null);
     }
 
 
