@@ -100,7 +100,7 @@ class HoursFieldTest extends TestCase
         $f->increment($d);
         $this->assertSame("2021-03-28 03:00:00", $d->format("Y-m-d H:i:s"));
 
-        $d = new NextRunDateTime($dt, true);
+        $d = new NextRunDateTime($d->getDateTime(), true);
         $f->increment($d, true);
         $this->assertSame("2021-03-28 02:59:00", $d->format("Y-m-d H:i:s"));
         $f->increment($d, true);

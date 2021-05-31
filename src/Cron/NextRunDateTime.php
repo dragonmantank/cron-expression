@@ -167,6 +167,44 @@ class NextRunDateTime
     }
 
 
+    public function incrementHour(): void
+    {
+        $previousOffset = $this->dt->getOffset();
+        $originalTimestamp = $this->getTimestamp();
+
+        $this->timezoneSafeModify(($this->isMovingBackwards() ? "-" : "+") ."1 hour");
+        $return = $this->setTimeHour($originalTimestamp);
+        if ($return) {
+            return;
+        }
+
+        $this->updateLastChangeOffsetChange($previousOffset);
+    }
+
+
+    protected function setTimeHour(int $originalTimestamp): bool
+    {
+        $this->log(__METHOD__, "Before time modify");
+        $this->dt->setTime((int)$this->dt->format('H'), ($this->moveBackwards ? 59 : 0));
+        $this->log(__METHOD__, "After time modify");
+
+        // setTime caused the offset to change, moving time in the wrong direction
+        // FIXME Minutes may change here due to DST change
+        $actualTimestamp = $this->getTimestamp();
+        if ((! $this->moveBackwards) && ($actualTimestamp <= $originalTimestamp)) {
+            $this->log(__METHOD__, "Time moved in wrong direction");
+            $this->timezoneSafeModify("+1 hour");
+            return true;
+        } elseif ($this->moveBackwards && ($actualTimestamp >= $originalTimestamp)) {
+            $this->log(__METHOD__, "Time moved in wrong direction");
+            $this->timezoneSafeModify("-1 hour");
+            return true;
+        }
+
+        return false;
+    }
+
+
     public function setHour(int $target): void
     {
         $this->log(__METHOD__, "{$target}");
@@ -221,27 +259,7 @@ class NextRunDateTime
             $distance = 0 - $distance;
         }
 
-        $this->log(__METHOD__, "Before time modify");
-        $preTimeSetTimestamp = $this->getTimestamp();
-        $this->dt->setTime((int)$this->dt->format('H'), ($this->moveBackwards ? 59 : 0));
-        $this->log(__METHOD__, "After time modify");
-
-        // setTime caused the offset to change, moving time in the wrong direction
-        $actualHour = (int) $this->dt->format('H');
-        if ($actualHour !== $target) {
-            $actualTimestamp = $this->getTimestamp();
-            if ((! $this->moveBackwards) && ($actualTimestamp <= $originalTimestamp)) {
-                $this->log(__METHOD__, "Time moved in wrong direction");
-                $this->timezoneSafeModify("+1 hour");
-                return;
-            } elseif ($this->moveBackwards && ($actualTimestamp >= $originalTimestamp)) {
-                $this->log(__METHOD__, "Time moved in wrong direction");
-                $this->timezoneSafeModify("-1 hour");
-                return;
-            }
-        }
-
-        // FIXME Minutes change due to DST change
+        $this->setTimeHour($originalTimestamp);
 
         $actualDay = (int)$this->dt->format('d');
         $actualHour = (int)$this->dt->format('H');
@@ -254,7 +272,7 @@ class NextRunDateTime
                 }
                 */
             } else {
-                if ($actualHour === ($target - 1)) {
+                if ($actualHour === ($target - 1) || (($actualHour === 23) && ($target === 0))) {
                     $this->log(__METHOD__, "DST fix backwards, target -1");
                     $this->timezoneSafeModify("+1 hour");
                 }

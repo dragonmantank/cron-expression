@@ -83,7 +83,7 @@ class HoursField extends AbstractField
         // allow us to go back or forwards and hour even
         // if DST will be changed between the hours.
         if (null === $parts || '*' === $parts) {
-            $date->modify(($invert ? '-' : '+') . '1 hour');
+            $date->incrementHour();
             return $this;
         }
 
