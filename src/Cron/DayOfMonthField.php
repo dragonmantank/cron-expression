@@ -93,6 +93,25 @@ class DayOfMonthField extends AbstractField
             return $fieldValue === $date->format('t');
         }
 
+        // Check to see if this is the last week day of the month
+		if ( 'LW' === $value) {
+			$ldom = date("Y-m-t");
+			$lwdom = date('l', strtotime($ldom));
+			switch ($lwdom) {
+				case 'Saturday':
+					$nd = strtotime('-1 day', strtotime($ldom));
+					$lwdom = date('d', $nd);
+					break;
+				case 'Sunday':
+					$nd = strtotime('-2 day', strtotime($ldom));
+					$lwdom = date('d', $nd);
+					break;
+				default:
+					$lwdom = date('d');
+			}
+			return $fieldValue === $lwdom;
+		}
+
         // Check to see if this is the nearest weekday to a particular value
         if (strpos($value, 'W')) {
             // Parse the target day
