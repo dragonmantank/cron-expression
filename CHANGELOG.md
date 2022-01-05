@@ -1,5 +1,29 @@
 # Change Log
 
+## [3.2.1] - 2022-01-04
+
+### Added
+- N/A
+
+### Changed
+- N/A
+
+### Fixed
+- Allow better mixture of ranges, steps, and lists (#122)
+
+## [3.2.0] - 2022-01-04
+
+### Added
+- Added alias for `@midnight` (#117)
+
+### Changed
+- Improved testing for instance of field in tests (#105)
+- Optimization for determining multiple run dates (#75)
+- `CronExpression` properties changed from private to protected (#106)
+
+### Fixed
+- N/A
+
 ## [3.1.0] - 2020-11-24
 
 ### Added

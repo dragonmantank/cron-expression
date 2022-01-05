@@ -42,6 +42,7 @@ class CronExpression
         '@monthly' => '0 0 1 * *',
         '@weekly' => '0 0 * * 0',
         '@daily' => '0 0 * * *',
+        '@midnight' => '0 0 * * *',
         '@hourly' => '0 * * * *',
     ];
 
@@ -255,8 +256,7 @@ class CronExpression
         $currentTime->setTimezone(new DateTimeZone($timeZone));
 
         $matches = [];
-        $max = max(0, $total);
-        for ($i = 0; $i < $max; ++$i) {
+        for ($i = 0; $i < $total; ++$i) {
             try {
                 $result = $this->getRunDate($currentTime, 0, $invert, $allowCurrentDate, $timeZone);
             } catch (RuntimeException $e) {
@@ -414,6 +414,9 @@ class CronExpression
             usort($combined, function ($a, $b) {
                 return $a->format('Y-m-d H:i:s') <=> $b->format('Y-m-d H:i:s');
             });
+            if ($invert) {
+                $combined = array_reverse($combined);
+            }
 
             return $combined[$nth];
         }

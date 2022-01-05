@@ -251,17 +251,6 @@ abstract class AbstractField implements FieldInterface
             return true;
         }
 
-        if (false !== strpos($value, '/')) {
-            [$range, $step] = explode('/', $value);
-
-            // Don't allow numeric ranges
-            if (is_numeric($range)) {
-                return false;
-            }
-
-            return $this->validate($range) && filter_var($step, FILTER_VALIDATE_INT);
-        }
-
         // Validate each chunk of a list individually
         if (false !== strpos($value, ',')) {
             foreach (explode(',', $value) as $listItem) {
@@ -271,6 +260,17 @@ abstract class AbstractField implements FieldInterface
             }
 
             return true;
+        }
+
+        if (false !== strpos($value, '/')) {
+            [$range, $step] = explode('/', $value);
+
+            // Don't allow numeric ranges
+            if (is_numeric($range)) {
+                return false;
+            }
+
+            return $this->validate($range) && filter_var($step, FILTER_VALIDATE_INT);
         }
 
         if (false !== strpos($value, '-')) {
