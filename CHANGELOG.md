@@ -1,5 +1,16 @@
 # Change Log
 
+## [3.2.1] - 2022-01-04
+
+### Added
+- N/A
+
+### Changed
+- N/A
+
+### Fixed
+- Allow better mixture of ranges, steps, and lists (#122)
+
 ## [3.2.0] - 2022-01-04
 
 ### Added
