@@ -391,9 +391,11 @@ class CronExpression
             $dowRunDates = $dowExpression->getMultipleRunDates($nth + 1, $currentTime, $invert, $allowCurrentDate, $timeZone);
 
             $combined = array_merge($domRunDates, $dowRunDates);
-            usort($combined, function ($a, $b) {
-                return $a->format('Y-m-d H:i:s') <=> $b->format('Y-m-d H:i:s');
-            });
+            if ($parts[2] !== 'L') {
+                usort($combined, function ($a, $b) {
+                    return $a->format('Y-m-d H:i:s') <=> $b->format('Y-m-d H:i:s');
+                });
+            }
 
             return $combined[$nth];
         }
