@@ -680,6 +680,7 @@ class CronExpressionTest extends TestCase
         $this->assertEquals($expected, $next);
     }
 
+
     /**
      * Helps validate additional test cases that were failing as part of #131's fix
      *
