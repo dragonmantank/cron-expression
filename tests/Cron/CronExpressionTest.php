@@ -730,16 +730,16 @@ class CronExpressionTest extends TestCase
     {
         CronExpression::registerAlias('@every', '* * * * *');
 
-        self::assertCount(8, CronExpression::aliases());
-        self::assertArrayHasKey('@every', CronExpression::aliases());
+        self::assertCount(8, CronExpression::getAliases());
+        self::assertArrayHasKey('@every', CronExpression::getAliases());
         self::assertTrue(CronExpression::supportsAlias('@every'));
         self::assertEquals(new CronExpression('@every'), new CronExpression('* * * * *'));
 
         self::assertTrue(CronExpression::unregisterAlias('@every'));
         self::assertFalse(CronExpression::unregisterAlias('@every'));
 
-        self::assertCount(7, CronExpression::aliases());
-        self::assertArrayNotHasKey('@every', CronExpression::aliases());
+        self::assertCount(7, CronExpression::getAliases());
+        self::assertArrayNotHasKey('@every', CronExpression::getAliases());
         self::assertFalse(CronExpression::supportsAlias('@every'));
 
         $this->expectException(LogicException::class);
