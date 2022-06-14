@@ -125,7 +125,7 @@ would evaluate to "Run 30 minutes after the 0 hour when the Day Of Month is 1 AN
 - `\Cron\CronExpression::determineTimezone()` now checks for `\DateTimeInterface` instead of just `\DateTime`
 - Errors with fields now report a more human-understandable error and are 1-based instead of 0-based
 - Better support for `\DateTimeImmutable` across the library by typehinting for `\DateTimeInterface` now
-- Literals should now be less case-sensative across the board
+- Literals should now be less case-sensitive across the board
 - Changed logic for when both a Day of Week and a Day of Month are supplied to now be an OR statement, not an AND
 ### Fixed
 - Fixed infinite loop when determining last day of week from literals
@@ -200,7 +200,7 @@ would evaluate to "Run 30 minutes after the 0 hour when the Day Of Month is 1 AN
 
 ### Changed
 - Max Iterations no longer hardcoded for `getRunDate()`
-- Supports DateTimeImmutable for newer PHP verions
+- Supports DateTimeImmutable for newer PHP versions
 
 ### Fixed
 - Fixed looping bug for PHP 7 when determining the last specified weekday of a month
