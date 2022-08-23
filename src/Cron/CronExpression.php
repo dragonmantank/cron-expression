@@ -45,6 +45,17 @@ class CronExpression
         '@daily' => '0 0 * * *',
         '@midnight' => '0 0 * * *',
         '@hourly' => '0 * * * *',
+        '@everyMinute' => '* * * * *',
+        '@everyTwoMinutes' => '*/2 * * * *',
+        '@everyThreeMinutes' => '*/3 * * * *',
+        '@everyFourMinutes' => '*/4 * * * *',
+        '@everyFiveMinutes' => '*/5 * * * *',
+        '@everyFifteenMinutes' => '*/15 * * * *',
+        '@everyThirtyMinutes' => '*/30 * * * *',
+        '@everyTwoHours' => '0 */2 * * *',
+        '@everyThreeHours' => '0 */3 * * *',
+        '@everyFourHours' => '0 */4 * * *',
+        '@everySixHours' => '0 */6 * * *',
     ];
 
     /**
