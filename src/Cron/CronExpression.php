@@ -202,7 +202,15 @@ class CronExpression
         Assert::isArray($split);
 
         $this->cronParts = $split;
-        if (\count($this->cronParts) < 5) {
+        $multipleQuestionMarks = \count(
+            \array_filter(
+                $this->cronParts,
+                function(string $p): bool {
+                    return $p === '?';
+                }
+            )
+        ) > 1;
+        if (\count($this->cronParts) < 5 || $multipleQuestionMarks) {
             throw new InvalidArgumentException(
                 $value . ' is not a valid CRON expression'
             );
