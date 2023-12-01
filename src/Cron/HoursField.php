@@ -139,6 +139,7 @@ class HoursField extends AbstractField
         }
 
         $parts = false !== strpos($parts, ',') ? explode(',', $parts) : [$parts];
+        sort($parts);
         $hours = [];
         foreach ($parts as $part) {
             $hours = array_merge($hours, $this->getRangeForExpression($part, 23));
