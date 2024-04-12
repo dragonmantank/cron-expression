@@ -148,7 +148,7 @@ class CronExpression
     /**
      * @deprecated since version 3.0.2, use __construct instead.
      */
-    public static function factory(string $expression, FieldFactoryInterface $fieldFactory = null): CronExpression
+    public static function factory(string $expression, ?FieldFactoryInterface $fieldFactory = null): CronExpression
     {
         /** @phpstan-ignore-next-line */
         return new static($expression, $fieldFactory);
@@ -179,7 +179,7 @@ class CronExpression
      * @param null|FieldFactoryInterface $fieldFactory Factory to create cron fields
      * @throws InvalidArgumentException
      */
-    public function __construct(string $expression, FieldFactoryInterface $fieldFactory = null)
+    public function __construct(string $expression, ?FieldFactoryInterface $fieldFactory = null)
     {
         $shortcut = strtolower($expression);
         $expression = self::$registeredAliases[$shortcut] ?? $expression;
