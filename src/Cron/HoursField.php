@@ -52,11 +52,13 @@ class HoursField extends AbstractField
         $lastTransition = $this->getPastTransition($date);
         if (($lastTransition !== null) && ($lastTransition["ts"] > ((int) $date->format('U') - 3600))) {
             $dtLastOffset = clone $date;
-            $this->timezoneSafeModify($dtLastOffset, "-1 hour");
+            $dtLastOffset->modify("-1 hour");
+            // $this->timezoneSafeModify($dtLastOffset, "-1 hour");
             $lastOffset = $dtLastOffset->getOffset();
 
             $dtNextOffset = clone $date;
-            $this->timezoneSafeModify($dtNextOffset, "+1 hour");
+            // $this->timezoneSafeModify($dtNextOffset, "+1 hour");
+            $dtNextOffset->modify("1 hour");
             $nextOffset = $dtNextOffset->getOffset();
 
             $offsetChange = $nextOffset - $lastOffset;
@@ -167,44 +169,53 @@ class HoursField extends AbstractField
         if (! $invert) {
             if ($originalHour >= $target) {
                 $distance = 24 - $originalHour;
-                $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+                // $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+                $date = $date->add(new \DateInterval("PT{$distance}H"));
 
                 $actualDay = (int)$date->format('d');
                 $actualHour = (int)$date->format('H');
                 if (($actualDay !== ($originalDay + 1)) && ($actualHour !== 0)) {
                     $offsetChange = ($previousOffset - $date->getOffset());
-                    $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                    // $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                    $date = $date->add(new \DateInterval("PT{$distance}S"));
                 }
 
                 $originalHour = (int)$date->format('H');
             }
 
             $distance = $target - $originalHour;
-            $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+            // $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+            $date = $date->add(new \DateInterval("PT{$distance}H"));
         } else {
             if ($originalHour <= $target) {
                 $distance = ($originalHour + 1);
-                $date = $this->timezoneSafeModify($date, "-" . $distance . " hours");
+                // $date = $this->timezoneSafeModify($date, "-" . $distance . " hours");
+                $date = $date->sub(new \DateInterval("PT{$distance}H"));
 
                 $actualDay = (int)$date->format('d');
                 $actualHour = (int)$date->format('H');
                 if (($actualDay !== ($originalDay - 1)) && ($actualHour !== 23)) {
                     $offsetChange = ($previousOffset - $date->getOffset());
-                    $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                    // $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                    $date = $date->add(new \DateInterval("PT{$offsetChange}H"));
                 }
 
                 $originalHour = (int)$date->format('H');
             }
 
             $distance = $originalHour - $target;
-            $date = $this->timezoneSafeModify($date, "-{$distance} hours");
+            // $date = $this->timezoneSafeModify($date, "-{$distance} hours");
+            // $date = $date->modify("-{$distance} hours and -{$previousOffset} seconds");
+            $interval = new \DateInterval("PT{$distance}H");
+            $date = $date->sub($interval);
         }
 
         $date = $this->setTimeHour($date, $invert, $originalTimestamp);
 
         $actualHour = (int)$date->format('H');
         if ($invert && ($actualHour === ($target - 1) || (($actualHour === 23) && ($target === 0)))) {
-            $date = $this->timezoneSafeModify($date, "+1 hour");
+            // $date = $this->timezoneSafeModify($date, "+1 hour");
+            // $date = $date->add(new \DateInterval("PT1H"));
         }
 
         return $this;

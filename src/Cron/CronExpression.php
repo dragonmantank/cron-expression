@@ -464,12 +464,7 @@ class CronExpression
 
         Assert::isInstanceOf($currentDate, DateTime::class);
         $currentDate->setTimezone(new DateTimeZone($timeZone));
-        // Workaround for setTime causing an offset change: https://bugs.php.net/bug.php?id=81074
-        $currentDate = DateTime::createFromFormat("!Y-m-d H:iO", $currentDate->format("Y-m-d H:iP"), $currentDate->getTimezone());
-        if ($currentDate === false) {
-            throw new \RuntimeException('Unable to create date from format');
-        }
-        $currentDate->setTimezone(new DateTimeZone($timeZone));
+        $currentDate->setTime((int) $currentDate->format('H'), (int) $currentDate->format('i'), 0);
 
         $nextRun = clone $currentDate;
 

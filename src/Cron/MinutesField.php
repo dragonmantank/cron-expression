@@ -42,7 +42,8 @@ class MinutesField extends AbstractField
     public function increment(DateTimeInterface &$date, $invert = false, $parts = null): FieldInterface
     {
         if (is_null($parts)) {
-            $date = $this->timezoneSafeModify($date, ($invert ? "-" : "+") ."1 minute");
+            $interval = new \DateInterval('PT1M');
+            $date = $invert ? $date->sub($interval) : $date->add($interval);
             return $this;
         }
 
@@ -73,23 +74,23 @@ class MinutesField extends AbstractField
         if (! $invert) {
             if ($originalMinute >= $target) {
                 $distance = 60 - $originalMinute;
-                $date = $this->timezoneSafeModify($date, "+{$distance} minutes");
+                $date = $date->add(new \DateInterval("PT{$distance}M"));
 
                 $originalMinute = (int) $date->format("i");
             }
 
             $distance = $target - $originalMinute;
-            $date = $this->timezoneSafeModify($date, "+{$distance} minutes");
+            $date = $date->add(new \DateInterval("PT{$distance}M"));
         } else {
             if ($originalMinute <= $target) {
                 $distance = ($originalMinute + 1);
-                $date = $this->timezoneSafeModify($date, "-{$distance} minutes");
+                $date = $date->sub(new \DateInterval("PT{$distance}M"));
 
                 $originalMinute = (int) $date->format("i");
             }
 
             $distance = $originalMinute - $target;
-            $date = $this->timezoneSafeModify($date, "-{$distance} minutes");
+            $date = $date->sub(new \DateInterval("PT{$distance}M"));
         }
 
         return $this;
