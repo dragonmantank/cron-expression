@@ -327,9 +327,9 @@ abstract class AbstractField implements FieldInterface
         // setTime caused the offset to change, moving time in the wrong direction
         $actualTimestamp = $date->format('U');
         if ((! $invert) && ($actualTimestamp <= $originalTimestamp)) {
-            $date = $date->modify("+1 hour");
+            $date = $date->add(new \DateInterval('PT1H'));
         } elseif ($invert && ($actualTimestamp >= $originalTimestamp)) {
-            $date = $date->modify("-1 hour");
+            $date = $date->sub(new \DateInterval('PT1H'));
         }
 
         return $date;
