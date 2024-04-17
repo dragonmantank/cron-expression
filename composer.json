@@ -38,6 +38,11 @@
         "phpstan": "./vendor/bin/phpstan analyze",
         "test": "phpunit"
     },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "3.x-dev"
+        }
+    },
     "config": {
         "allow-plugins": {
             "ocramius/package-versions": true,
