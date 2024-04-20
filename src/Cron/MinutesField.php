@@ -73,23 +73,23 @@ class MinutesField extends AbstractField
         if (! $invert) {
             if ($originalMinute >= $target) {
                 $distance = 60 - $originalMinute;
-                $date = $this->timezoneSafeModify($date, "+{$distance} minutes");
+                $date = $this->timezoneSafeModify($date, "{$distance} minutes");
 
                 $originalMinute = (int) $date->format("i");
             }
 
             $distance = $target - $originalMinute;
-            $date = $this->timezoneSafeModify($date, "+{$distance} minutes");
+            $date = $this->timezoneSafeModify($date, "{$distance} minutes");
         } else {
             if ($originalMinute <= $target) {
                 $distance = ($originalMinute + 1);
-                $date = $this->timezoneSafeModify($date, "-{$distance} minutes");
+                $date = $this->timezoneSafeModify($date, (-$distance) . " minutes");
 
                 $originalMinute = (int) $date->format("i");
             }
 
             $distance = $originalMinute - $target;
-            $date = $this->timezoneSafeModify($date, "-{$distance} minutes");
+            $date = $this->timezoneSafeModify($date, (-$distance) . " minutes");
         }
 
         return $this;
