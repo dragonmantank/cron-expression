@@ -12,7 +12,6 @@ use Exception;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
-use Webmozart\Assert\Assert;
 
 /**
  * CRON expression parser that can determine whether or not a CRON expression is
@@ -200,7 +199,12 @@ class CronExpression
     public function setExpression(string $value): CronExpression
     {
         $split = preg_split('/\s/', $value, -1, PREG_SPLIT_NO_EMPTY);
-        Assert::isArray($split);
+
+        if (!\is_array($split)) {
+            throw new InvalidArgumentException(
+                $value . ' is not a valid CRON expression'
+            );
+        }
 
         $notEnoughParts = \count($split) < 5;
 
@@ -334,7 +338,10 @@ class CronExpression
             $currentTime = new DateTime($currentTime);
         }
 
-        Assert::isInstanceOf($currentTime, DateTime::class);
+        if (!$currentTime instanceof DateTime) {
+            throw new InvalidArgumentException('invalid current time');
+        }
+
         $currentTime->setTimezone(new DateTimeZone($timeZone));
 
         $matches = [];
@@ -420,7 +427,10 @@ class CronExpression
             $currentTime = new DateTime($currentTime);
         }
 
-        Assert::isInstanceOf($currentTime, DateTime::class);
+        if (!$currentTime instanceof DateTime) {
+            throw new InvalidArgumentException('invalid current time');
+        }
+
         $currentTime->setTimezone(new DateTimeZone($timeZone));
 
         // drop the seconds to 0
@@ -462,7 +472,10 @@ class CronExpression
             $currentDate = new DateTime('now');
         }
 
-        Assert::isInstanceOf($currentDate, DateTime::class);
+        if (!$currentDate instanceof DateTime) {
+            throw new InvalidArgumentException('invalid current date');
+        }
+
         $currentDate->setTimezone(new DateTimeZone($timeZone));
         // Workaround for setTime causing an offset change: https://bugs.php.net/bug.php?id=81074
         $currentDate = DateTime::createFromFormat("!Y-m-d H:iO", $currentDate->format("Y-m-d H:iP"), $currentDate->getTimezone());
