@@ -339,22 +339,31 @@ class CronExpressionTest extends TestCase
         $tzServer = new \DateTimeZone('Europe/London');
 
         $dtCurrent = \DateTime::createFromFormat('!Y-m-d H:i:s', '2017-10-17 10:00:00', $tzServer);
-        Assert::isInstanceOf($dtCurrent, DateTime::class);
+        if (!$dtCurrent instanceof \DateTime) {
+            throw new InvalidArgumentException('invalid current date time');
+        }
+
         $dtPrev = $cron->getPreviousRunDate($dtCurrent, 0, true, $tzCron);
         $this->assertEquals('1508151600 : 2017-10-16T07:00:00-04:00 : America/New_York', $dtPrev->format('U \\: c \\: e'));
 
         $dtCurrent = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', '2017-10-17 10:00:00', $tzServer);
-        Assert::isInstanceOf($dtCurrent, \DateTimeImmutable::class);
+        if (!$dtCurrent instanceof \DateTimeImmutable) {
+            throw new InvalidArgumentException('invalid current date time immutable');
+        }
         $dtPrev = $cron->getPreviousRunDate($dtCurrent, 0, true, $tzCron);
         $this->assertEquals('1508151600 : 2017-10-16T07:00:00-04:00 : America/New_York', $dtPrev->format('U \\: c \\: e'));
 
         $dtCurrent = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', '2017-10-17 10:00:00', $tzServer);
-        Assert::isInstanceOf($dtCurrent, \DateTimeImmutable::class);
+        if (!$dtCurrent instanceof \DateTimeImmutable) {
+            throw new InvalidArgumentException('invalid current date time immutable');
+        }
         $dtPrev = $cron->getPreviousRunDate($dtCurrent->format('c'), 0, true, $tzCron);
         $this->assertEquals('1508151600 : 2017-10-16T07:00:00-04:00 : America/New_York', $dtPrev->format('U \\: c \\: e'));
 
         $dtCurrent = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', '2017-10-17 10:00:00', $tzServer);
-        Assert::isInstanceOf($dtCurrent, \DateTimeImmutable::class);
+        if (!$dtCurrent instanceof \DateTimeImmutable) {
+            throw new InvalidArgumentException('invalid current date time immutable');
+        }
         $dtPrev = $cron->getPreviousRunDate($dtCurrent->format('\\@U'), 0, true, $tzCron);
         $this->assertEquals('1508151600 : 2017-10-16T07:00:00-04:00 : America/New_York', $dtPrev->format('U \\: c \\: e'));
     }
