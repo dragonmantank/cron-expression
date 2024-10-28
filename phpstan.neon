@@ -1,5 +1,4 @@
 parameters:
-    checkMissingIterableValueType: false
 
     ignoreErrors:
         - '#Call to an undefined method DateTimeInterface::add\(\)#'
@@ -8,6 +7,7 @@ parameters:
         - '#Call to an undefined method DateTimeInterface::setTime\(\)#'
         - '#Call to an undefined method DateTimeInterface::setTimezone\(\)#'
         - '#Call to an undefined method DateTimeInterface::sub\(\)#'
+        - identifier: missingType.iterableValue
 
     level: max
 

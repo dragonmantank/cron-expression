@@ -139,6 +139,8 @@ abstract class AbstractField implements FieldInterface
             return false;
         }
 
+        $step = (int)$step;
+
         // Expand the * to a full range
         if ('*' === $range) {
             $range = $this->rangeStart . '-' . $this->rangeEnd;
@@ -217,6 +219,7 @@ abstract class AbstractField implements FieldInterface
                 $offset = $range[0];
                 $to = $range[1] ?? $max;
             }
+            $stepSize = (int)$stepSize;
             $offset = '*' === $offset ? $this->rangeStart : $offset;
             if ($stepSize >= $this->rangeEnd) {
                 $values = [$this->fullRange[$stepSize % \count($this->fullRange)]];
