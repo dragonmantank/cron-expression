@@ -426,6 +426,68 @@ class CronExpressionTest extends TestCase
     }
 
     /**
+     * @covers \Cron\CronExpression::getRunDatesUntil
+     */
+    public function testGetRunDatesUntil(): void
+    {
+        $cron = new CronExpression('*/2 * * * *');
+
+        // Test with end date and limit of 4 occurrences
+        $until = '2008-11-09 00:06:00';
+        $limit = 4;
+        $expectedDates = [
+            new DateTime('2008-11-09 00:00:00'),
+            new DateTime('2008-11-09 00:02:00'),
+            new DateTime('2008-11-09 00:04:00'),
+            new DateTime('2008-11-09 00:06:00'),
+        ];
+
+        // Test with allowCurrentDate set to false (default)
+        $result = $cron->getRunDatesUntil($until, $limit, '2008-11-09 00:00:00');
+        $this->assertEquals(array_slice($expectedDates, 1), $result);
+
+        // Test with allowCurrentDate set to true
+        $result = $cron->getRunDatesUntil($until, $limit, '2008-11-09 00:00:00', true);
+        $this->assertEquals($expectedDates, $result);
+
+        // Test with limit set to 0 (defaults to maxIterationCount)
+        $limit = 0;
+        $expectedDates = [
+            new DateTime('2008-11-09 00:00:00'),
+            new DateTime('2008-11-09 00:02:00'),
+            new DateTime('2008-11-09 00:04:00'),
+            new DateTime('2008-11-09 00:06:00'),
+        ];
+
+        // Test with allowCurrentDate set to false
+        $result = $cron->getRunDatesUntil($until, $limit, '2008-11-09 00:00:00');
+        $this->assertEquals(array_slice($expectedDates, 1), $result);
+
+        // Test with allowCurrentDate set to true
+        $result = $cron->getRunDatesUntil($until, $limit, '2008-11-09 00:00:00', true);
+        $this->assertEquals($expectedDates, $result);
+
+        // Test with end date limit that exceeds the limit
+        $until = '2008-11-09 00:05:00';
+        $limit = 10; // A larger limit to ensure iteration stops properly
+        $expectedDates = [
+            new DateTime('2008-11-09 00:00:00'),
+            new DateTime('2008-11-09 00:02:00'),
+            new DateTime('2008-11-09 00:04:00'),
+        ];
+
+        // Test with allowCurrentDate set to false
+        $result = $cron->getRunDatesUntil($until, $limit, '2008-11-09 00:00:00');
+        $this->assertEquals(array_slice($expectedDates, 1), $result);
+
+        // Test with allowCurrentDate set to true
+        $result = $cron->getRunDatesUntil($until, $limit, '2008-11-09 00:00:00', true);
+        $this->assertEquals($expectedDates, $result);
+    }
+
+
+
+    /**
      * @covers \Cron\CronExpression
      */
     public function testCanIterateOverNextRuns(): void
