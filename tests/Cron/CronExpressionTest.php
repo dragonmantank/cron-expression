@@ -439,6 +439,16 @@ class CronExpressionTest extends TestCase
     /**
      * @covers \Cron\CronExpression::getRunDatesUntil
      */
+
+    public function testInvalidLimit(): void
+    {
+        $cron = new CronExpression('* * * * *');
+        $this->expectException(InvalidArgumentException::class);
+        $cron->getRunDatesUntil('2008-11-09 00:00:00', null, '2008-11-09 00:00:00');
+    }
+    /**
+     * @covers \Cron\CronExpression::getRunDatesUntil
+     */
     public function testGetRunDatesUntil(): void
     {
         $cron = new CronExpression('*/2 * * * *');

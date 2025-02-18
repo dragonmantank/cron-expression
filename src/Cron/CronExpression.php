@@ -398,6 +398,10 @@ class CronExpression
             throw new InvalidArgumentException("End date must be a string or an instance of DateTimeInterface.");
         }
 
+        if (!is_int($limit)) {
+            throw new InvalidArgumentException("Limit must be an integer.");
+        }
+
         $timeZone = $this->determineTimeZone($currentTime, $timeZone);
 
         if ($limit === 0) {
