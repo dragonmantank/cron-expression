@@ -381,9 +381,9 @@ class CronExpression
      */
     public function getRunDatesUntil(
         $until,
-        $limit = 0,
+        int $limit = 0,
         $currentTime = 'now',
-        $allowCurrentDate = false,
+        bool $allowCurrentDate = false,
         $timeZone = null
     ): array
 
