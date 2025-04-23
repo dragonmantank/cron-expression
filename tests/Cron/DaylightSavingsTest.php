@@ -209,28 +209,127 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($dtExpected, $cron->getPreviousRunDate($dtCurrent, 0, false, $tz->getName()));
     }
 
-    public function testOffsetIncrementsMultipleRunDates(): void
+    public static function dayLightSavingExamples(): \Generator
     {
-        $expression = "0 1 * * 0";
-        $cron = new CronExpression($expression);
-        $tz = new \DateTimeZone("Europe/London");
-
-        $expected = [
-            $this->createDateTimeExactly("2021-03-14 01:00+00:00", $tz),
-            $this->createDateTimeExactly("2021-03-21 01:00+00:00", $tz),
-            $this->createDateTimeExactly("2021-03-28 02:00+01:00", $tz),
-            $this->createDateTimeExactly("2021-04-04 01:00+01:00", $tz),
-            $this->createDateTimeExactly("2021-04-11 01:00+01:00", $tz),
+        yield 'fixed hour before turnover point' => [
+            "0 1 * * 0",
+            [
+                "2021-03-14 01:00+00:00",
+                "2021-03-21 01:00+00:00",
+                "2021-03-28 02:00+01:00",
+                "2021-04-04 01:00+01:00",
+                "2021-04-11 01:00+01:00",
+            ],
+            new \DateTimeZone("Europe/London"),
+            "2021-03-13 00:00+00:00",
+            "2021-04-12 00:00+01:00",
         ];
 
-        $dtCurrent = $this->createDateTimeExactly("2021-03-13 00:00+00:00", $tz);
-        $actual = $cron->getMultipleRunDates(5, $dtCurrent, false, true, $tz->getName());
+        yield 'fixed hour expression while daylight saving is starting (#154)' => [
+            "30 07 * * *",
+            [
+                "2023-03-11 07:30-05:00",
+                "2023-03-12 07:30-04:00",
+                "2023-03-13 07:30-04:00",
+            ],
+            new \DateTimeZone("America/New_York"),
+            "2023-03-10 08:00-05:00",
+            "2023-03-13 08:00-04:00",
+        ];
+
+        yield 'fixed hour expression while daylight saving is starting (#202)' => [
+            "0 10 * * *",
+            [
+                "2025-03-08 10:00-06:00",
+                "2025-03-09 10:00-05:00",
+                "2025-03-10 10:00-05:00",
+            ],
+            new \DateTimeZone("America/Chicago"),
+            "2025-03-08 09:00-06:00",
+            "2025-03-10 11:00-05:00",
+        ];
+
+        yield 'fixed hour expression while daylight saving is ending' => [
+            "0 10 * * *",
+            [
+                "2025-11-01 10:00-05:00",
+                "2025-11-02 10:00-06:00",
+                "2025-11-03 10:00-06:00",
+            ],
+            new \DateTimeZone("America/Chicago"),
+            "2025-11-01 09:00-05:00",
+            "2025-11-03 11:00-06:00",
+        ];
+
+        yield 'every hour expression while daylight saving is starting' => [
+            "30 */1 * * *",
+            [
+                "2025-03-09 00:30-06:00",
+                "2025-03-09 01:30-06:00",
+                "2025-03-09 03:30-05:00",
+                "2025-03-09 04:30-05:00",
+            ],
+            new \DateTimeZone("America/Chicago"),
+            "2025-03-09 00:00-06:00",
+            "2025-03-09 05:00-05:00",
+        ];
+
+        yield 'every hour expression while daylight saving is ending' => [
+            "30 */1 * * *",
+            [
+                "2025-11-02 00:30-05:00",
+                "2025-11-02 01:30-05:00",
+                "2025-11-02 01:30-06:00",
+                "2025-11-02 02:30-06:00",
+            ],
+            new \DateTimeZone("America/Chicago"),
+            "2025-11-02 00:00-05:00",
+            "2025-11-02 03:00-06:00",
+        ];
+
+        yield 'fixed time expression inside the daylight transition hour' => [
+            "30 2 * * *",
+            [
+                "2025-03-08 02:30-06:00",
+                "2025-03-09 03:30-05:00",
+                "2025-03-10 02:30-05:00",
+            ],
+            new \DateTimeZone("America/Chicago"),
+            "2025-03-08 01:30-06:00",
+            "2025-03-10 11:00-05:00",
+        ];
+    }
+
+    /**
+     * @param string[] $expected
+     *
+     * @dataProvider dayLightSavingExamples
+     */
+    public function testOffsetIncrementsMultipleRunDates(
+        string $expression,
+        array $expected,
+        \DateTimeZone $tz,
+        string $currentDate,
+        string $currentInvertedDate
+    ): void {
+        $cron = new CronExpression($expression);
+
+        $expected = array_map(
+            function (string $dtString) use ($tz) {
+              return $this->createDateTimeExactly($dtString, $tz);
+            },
+            $expected
+        );
+        $total = count($expected);
+
+        $dtCurrent = $this->createDateTimeExactly($currentDate, $tz);
+        $actual = $cron->getMultipleRunDates($total, $dtCurrent, false, true, $tz->getName());
         foreach ($expected as $dtExpected) {
             $this->assertContainsEquals($dtExpected, $actual);
         }
 
-        $dtCurrent = $this->createDateTimeExactly("2021-04-12 00:00+01:00", $tz);
-        $actual = $cron->getMultipleRunDates(5, $dtCurrent, true, true, $tz->getName());
+        $dtCurrent = $this->createDateTimeExactly($currentInvertedDate, $tz);
+        $actual = $cron->getMultipleRunDates($total, $dtCurrent, true, true, $tz->getName());
         foreach ($expected as $dtExpected) {
             $this->assertContainsEquals($dtExpected, $actual);
         }
