@@ -366,7 +366,7 @@ class CronExpression
      * @param int|string|null $part specify the part to retrieve or NULL to get the full
      *                     cron schedule string
      *
-     * @return null|string Returns the CRON expression, a part of the
+     * @return ($part is null ? string : string|null) Returns the CRON expression, a part of the
      *                     CRON expression, or NULL if the part was specified but not found
      */
     public function getExpression($part = null): ?string
