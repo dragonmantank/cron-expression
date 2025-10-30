@@ -163,6 +163,7 @@ class HoursField extends AbstractField
 
         $target = (int) $hours[$position];
         $originalHour = (int)$date->format('H');
+        $originalDst = (int)$date->format('I');
 
         $originalDay = (int)$date->format('d');
         $previousOffset = $date->getOffset();
@@ -201,6 +202,11 @@ class HoursField extends AbstractField
 
             $distance = $originalHour - $target;
             $date = $this->timezoneSafeModify($date, "-{$distance} hours");
+        }
+
+        $actualDst = (int)$date->format('I');
+        if ($originalDst < $actualDst) {
+            $date = $this->timezoneSafeModify($date, "-1 hours");
         }
 
         $date = $this->setTimeHour($date, $invert, $originalTimestamp);
