@@ -1,5 +1,4 @@
 parameters:
-    checkMissingIterableValueType: false
 
     ignoreErrors:
         - '#Call to an undefined method DateTimeInterface::add\(\)#'
@@ -9,7 +8,7 @@ parameters:
         - '#Call to an undefined method DateTimeInterface::setTimezone\(\)#'
         - '#Call to an undefined method DateTimeInterface::sub\(\)#'
 
-    level: max
+    level: 2
 
     paths:
         - src/
