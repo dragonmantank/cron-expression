@@ -23,7 +23,7 @@ class HoursField extends AbstractField
     protected $rangeEnd = 23;
 
     /**
-     * @var array|null Transitions returned by DateTimeZone::getTransitions()
+     * @var list<array<string, bool|int|string>>|null Transitions returned by DateTimeZone::getTransitions()
      */
     protected $transitions = [];
 
@@ -73,6 +73,9 @@ class HoursField extends AbstractField
         return $retval;
     }
 
+    /**
+     * @return non-empty-array<string, bool|int|string>|null
+     */
     public function getPastTransition(DateTimeInterface $date): ?array
     {
         $currentTimestamp = (int) $date->format('U');
