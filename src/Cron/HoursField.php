@@ -148,8 +148,8 @@ class HoursField extends AbstractField
         }
 
         $current_hour = (int) $date->format('H');
-        $position = $invert ? \count($hours) - 1 : 0;
         $countHours = \count($hours);
+        $position = $invert ? $countHours - 1 : 0;
         if ($countHours > 1) {
             for ($i = 0; $i < $countHours - 1; ++$i) {
                 if ((!$invert && $current_hour >= $hours[$i] && $current_hour < $hours[$i + 1]) ||
@@ -162,7 +162,7 @@ class HoursField extends AbstractField
         }
 
         $target = (int) $hours[$position];
-        $originalHour = (int)$date->format('H');
+        $originalHour = $current_hour;
 
         $originalDay = (int)$date->format('d');
         $previousOffset = $date->getOffset();

@@ -55,9 +55,10 @@ class MinutesField extends AbstractField
             $minutes = array_merge($minutes, $this->getRangeForExpression($part, 59));
         }
 
-        $position = $invert ? \count($minutes) - 1 : 0;
-        if (\count($minutes) > 1) {
-            for ($i = 0; $i < \count($minutes) - 1; ++$i) {
+        $countMinutes = \count($minutes);
+        $position = $invert ? $countMinutes - 1 : 0;
+        if ($countMinutes > 1) {
+            for ($i = 0; $i < $countMinutes - 1; ++$i) {
                 if ((!$invert && $current_minute >= $minutes[$i] && $current_minute < $minutes[$i + 1]) ||
                     ($invert && $current_minute > $minutes[$i] && $current_minute <= $minutes[$i + 1])) {
                     $position = $invert ? $i : $i + 1;
@@ -68,7 +69,7 @@ class MinutesField extends AbstractField
         }
 
         $target = (int) $minutes[$position];
-        $originalMinute = (int) $date->format("i");
+        $originalMinute = $current_minute;
 
         if (! $invert) {
             if ($originalMinute >= $target) {
