@@ -7,10 +7,6 @@ parameters:
         - '#Call to an undefined method DateTimeInterface::setTime\(\)#'
         - '#Call to an undefined method DateTimeInterface::setTimezone\(\)#'
         - '#Call to an undefined method DateTimeInterface::sub\(\)#'
-        - identifier: missingType.iterableValue
-        - '#Binary operation "%" between string and int<0, max> results in an error.#'
-        - '#Binary operation "%" between 0\|1\|string and int<0, max> results in an error.#'
-        - '#Binary operation "%=" between string and 7 results in an error.#'
 
     level: 2
 
