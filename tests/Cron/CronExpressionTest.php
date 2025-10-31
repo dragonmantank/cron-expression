@@ -122,7 +122,7 @@ class CronExpressionTest extends TestCase
      *
      * @return array
      */
-    public function scheduleProvider(): array
+    public static function scheduleProvider(): array
     {
         return [
             ['*/2 */2 * * *', '2015-08-10 21:47:27', '2015-08-10 22:00:00', false],
