@@ -361,6 +361,77 @@ class CronExpression
     }
 
     /**
+     * Get multiple run dates until a specific end date.
+     *
+     * This method calculates and returns execution dates based on the cron expression
+     * until a given end date, with optional constraints such as a maximum number of occurrences,
+     * timezone adjustments, and date inclusion rules.
+     *
+     * @param string|DateTimeInterface $until The date limit for fetching occurrences.
+     *                                        If a string is provided, it must be a valid date format.
+     * @param int $limit The maximum number of occurrences to return. If set to 0, it defaults to `$this->maxIterationCount`.
+     * @param string|DateTimeInterface $currentTime The reference time to start generating dates. Defaults to 'now'.
+     * @param bool $allowCurrentDate Whether to include the current date in the results if it matches the cron expression. Defaults to `false`.
+     * @param string|null $timeZone Optional. The timezone to use for date calculations.
+     *                              - If `null`, it will be determined based on `$currentTime` (if a `DateTimeInterface` is provided, its timezone will be used).
+     *                              - If `$currentTime` is a string or `null`, the system's default timezone will be used.
+     * @return DateTimeInterface[] An array of DateTimeInterface objects representing the matching execution dates.
+     *
+     * @throws InvalidArgumentException|Exception
+     */
+    public function getRunDatesUntil(
+        $until,
+        int $limit = 0,
+        $currentTime = 'now',
+        bool $allowCurrentDate = false,
+        $timeZone = null
+    ): array
+
+    {
+        if (is_string($until)) {
+            try {
+                $until = new DateTimeImmutable($until);
+            } catch (Exception $e) {
+                throw new InvalidArgumentException("Invalid date format: $until");
+            }
+        } elseif (!$until instanceof DateTimeInterface) {
+            throw new InvalidArgumentException("End date must be a string or an instance of DateTimeInterface.");
+        }
+
+        if (!is_int($limit)) {
+            throw new InvalidArgumentException("Limit must be an integer.");
+        }
+
+        $timeZone = $this->determineTimeZone($currentTime, $timeZone);
+
+        if ($limit === 0) {
+            $limit = $this->maxIterationCount;
+        }
+
+        $dates = [];
+
+        $untilTimestamp = $until->getTimestamp();
+        for ($i = 0; $i < $limit; $i++) {
+            try {
+                $result = $this->getRunDate($currentTime, 0, false, $allowCurrentDate, $timeZone);
+            } catch (RuntimeException $e) {
+                break;
+            }
+
+            $allowCurrentDate = false;
+            $currentTime = clone $result;
+
+            if ($result->getTimestamp() > $untilTimestamp) {
+                break;
+            }
+
+            $dates[] = $result;
+        }
+
+        return $dates;
+    }
+
+    /**
      * Get all or part of the CRON expression.
      *
      * @param int|string|null $part specify the part to retrieve or NULL to get the full
