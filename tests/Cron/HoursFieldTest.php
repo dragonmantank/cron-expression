@@ -7,16 +7,17 @@ namespace Cron\Tests;
 use Cron\HoursField;
 use DateTime;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\CoversFunction;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
+#[CoversFunction('validate')]
+#[CoversFunction('increment')]
 class HoursFieldTest extends TestCase
 {
-    /**
-     * @covers \Cron\HoursField::validate
-     */
+
     public function testValidatesField(): void
     {
         $f = new HoursField();
@@ -28,9 +29,6 @@ class HoursFieldTest extends TestCase
         $this->assertFalse($f->validate('1/10'));
     }
 
-    /**
-     * @covers \Cron\HoursField::increment
-     */
     public function testIncrementsDate(): void
     {
         $d = new DateTime('2011-03-15 11:15:00');
@@ -43,9 +41,6 @@ class HoursFieldTest extends TestCase
         $this->assertSame('2011-03-15 10:59:00', $d->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\HoursField::increment
-     */
     public function testIncrementsDateTimeImmutable(): void
     {
         $d = new DateTimeImmutable('2011-03-15 11:15:00');
@@ -54,9 +49,6 @@ class HoursFieldTest extends TestCase
         $this->assertSame('2011-03-15 12:00:00', $d->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\HoursField::increment
-     */
     public function testIncrementsDateWithThirtyMinuteOffsetTimezone(): void
     {
         $tz = date_default_timezone_get();
@@ -72,9 +64,6 @@ class HoursFieldTest extends TestCase
         date_default_timezone_set($tz);
     }
 
-    /**
-     * @covers \Cron\HoursField::increment
-     */
     public function testIncrementDateWithFifteenMinuteOffsetTimezone(): void
     {
         $tz = date_default_timezone_get();
@@ -90,9 +79,6 @@ class HoursFieldTest extends TestCase
         date_default_timezone_set($tz);
     }
 
-    /**
-     * @covers \Cron\HoursField::increment
-     */
     public function testIncrementAcrossDstChangeBerlin(): void
     {
         $tz = new \DateTimeZone("Europe/Berlin");
@@ -113,9 +99,6 @@ class HoursFieldTest extends TestCase
         $this->assertSame("2021-03-27 23:59:00", $d->format("Y-m-d H:i:s"));
     }
 
-    /**
-     * @covers \Cron\HoursField::increment
-     */
     public function testIncrementAcrossDstChangeLondon(): void
     {
         $tz = new \DateTimeZone("Europe/London");

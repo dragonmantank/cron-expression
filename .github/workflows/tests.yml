@@ -74,4 +74,4 @@ jobs:
         run: composer update --prefer-dist --no-interaction
 
       - name: Analyze & test
-        run: composer test -- -v --coverage-clover=coverage.xml
+        run: composer test --coverage-clover=coverage.xml

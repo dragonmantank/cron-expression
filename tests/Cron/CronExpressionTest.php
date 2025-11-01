@@ -11,17 +11,35 @@ use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
-use Webmozart\Assert\Assert;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
+#[CoversFunction('getNextRunDate')]
+#[CoversClass(\Cron\DayOfMonthField::class)]
+#[CoversClass(\Cron\DayOfWeekField::class)]
+#[CoversClass(\Cron\MinutesField::class)]
+#[CoversClass(\Cron\HoursField::class)]
+#[CoversClass(\Cron\MonthField::class)]
+#[CoversClass(\Cron\CronExpression::class)]
+#[CoversFunction('getRunDate')]
+#[CoversFunction('__construct')]
+#[CoversFunction('getExpression')]
+#[CoversFunction('setExpression')]
+#[CoversFunction('__toString')]
+#[CoversFunction('setPart')]
+#[CoversFunction('isDue')]
+#[CoversFunction('getPreviousRunDate')]
+#[CoversFunction('getMultipleRunDates')]
+#[CoversFunction('setMaxIterationCount')]
+#[CoversFunction('isValidExpression')]
 class CronExpressionTest extends TestCase
 {
-    /**
-     * @covers \Cron\CronExpression::__construct
-     */
     public function testConstructorRecognizesTemplates(): void
     {
         $this->assertSame('0 0 1 1 *', (new CronExpression('@annually'))->getExpression());
@@ -31,11 +49,6 @@ class CronExpressionTest extends TestCase
         $this->assertSame('0 0 * * *', (new CronExpression('@midnight'))->getExpression());
     }
 
-    /**
-     * @covers \Cron\CronExpression::__construct
-     * @covers \Cron\CronExpression::getExpression
-     * @covers \Cron\CronExpression::__toString
-     */
     public function testParsesCronSchedule(): void
     {
         // '2010-09-10 12:00:00'
@@ -50,11 +63,6 @@ class CronExpressionTest extends TestCase
         $this->assertNull($cron->getExpression('foo'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::__construct
-     * @covers \Cron\CronExpression::getExpression
-     * @covers \Cron\CronExpression::__toString
-     */
     public function testParsesCronScheduleThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -62,14 +70,8 @@ class CronExpressionTest extends TestCase
         new CronExpression('A 1 2 3 4');
     }
 
-    /**
-     * @covers \Cron\CronExpression::__construct
-     * @covers \Cron\CronExpression::getExpression
-     * @dataProvider scheduleWithDifferentSeparatorsProvider
-     *
-     * @param mixed $schedule
-     */
-    public function testParsesCronScheduleWithAnySpaceCharsAsSeparators($schedule, array $expected): void
+    #[DataProvider('scheduleWithDifferentSeparatorsProvider')]
+    public function testParsesCronScheduleWithAnySpaceCharsAsSeparators(mixed $schedule, array $expected): void
     {
         $cron = new CronExpression($schedule);
         $this->assertSame($expected[0], $cron->getExpression(CronExpression::MINUTE));
@@ -94,11 +96,6 @@ class CronExpressionTest extends TestCase
         ];
     }
 
-    /**
-     * @covers \Cron\CronExpression::__construct
-     * @covers \Cron\CronExpression::setExpression
-     * @covers \Cron\CronExpression::setPart
-     */
     public function testInvalidCronsWillFail(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -106,9 +103,6 @@ class CronExpressionTest extends TestCase
         $cron = new CronExpression('* * * 1');
     }
 
-    /**
-     * @covers \Cron\CronExpression::setPart
-     */
     public function testInvalidPartsWillFail(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -122,7 +116,7 @@ class CronExpressionTest extends TestCase
      *
      * @return array
      */
-    public function scheduleProvider(): array
+    public static function scheduleProvider(): array
     {
         return [
             ['*/2 */2 * * *', '2015-08-10 21:47:27', '2015-08-10 22:00:00', false],
@@ -209,21 +203,12 @@ class CronExpressionTest extends TestCase
     }
 
     /**
-     * @covers \Cron\CronExpression::isDue
-     * @covers \Cron\CronExpression::getNextRunDate
-     * @covers \Cron\DayOfMonthField
-     * @covers \Cron\DayOfWeekField
-     * @covers \Cron\MinutesField
-     * @covers \Cron\HoursField
-     * @covers \Cron\MonthField
-     * @covers \Cron\CronExpression::getRunDate
-     * @dataProvider scheduleProvider
-     *
      * @param mixed $schedule
      * @param mixed $relativeTime
      * @param mixed $nextRun
      * @param mixed $isDue
      */
+    #[DataProvider('scheduleProvider')]
     public function testDeterminesIfCronIsDue($schedule, $relativeTime, $nextRun, $isDue): void
     {
         // Test next run date
@@ -247,9 +232,6 @@ class CronExpressionTest extends TestCase
         $this->assertEquals($nextRunDate, $next);
     }
 
-    /**
-     * @covers \Cron\CronExpression::isDue
-     */
     public function testIsDueHandlesDifferentDates(): void
     {
         $cron = new CronExpression('* * * * *');
@@ -260,9 +242,6 @@ class CronExpressionTest extends TestCase
         $this->assertTrue($cron->isDue(new DateTimeImmutable('now')));
     }
 
-    /**
-     * @covers \Cron\CronExpression::isDue
-     */
     public function testIsDueHandlesDifferentDefaultTimezones(): void
     {
         $originalTimezone = date_default_timezone_get();
@@ -287,9 +266,6 @@ class CronExpressionTest extends TestCase
         date_default_timezone_set($originalTimezone);
     }
 
-    /**
-     * @covers \Cron\CronExpression::isDue
-     */
     public function testIsDueHandlesDifferentSuppliedTimezones(): void
     {
         $cron = new CronExpression('0 15 * * 3'); //Wednesday at 15:00
@@ -308,9 +284,6 @@ class CronExpressionTest extends TestCase
         $this->assertTrue($cron->isDue(new DateTime($date, new DateTimeZone('Asia/Tokyo')), 'Asia/Tokyo'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::isDue
-     */
     public function testIsDueHandlesDifferentTimezonesAsArgument(): void
     {
         $cron = new CronExpression('0 15 * * 3'); //Wednesday at 15:00
@@ -329,9 +302,6 @@ class CronExpressionTest extends TestCase
         $this->assertTrue($cron->isDue(new DateTime($date, $tokyo), 'Asia/Tokyo'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::isDue
-     */
     public function testRecognisesTimezonesAsPartOfDateTime(): void
     {
         $cron = new CronExpression('0 7 * * *');
@@ -368,9 +338,6 @@ class CronExpressionTest extends TestCase
         $this->assertEquals('1508151600 : 2017-10-16T07:00:00-04:00 : America/New_York', $dtPrev->format('U \\: c \\: e'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getPreviousRunDate
-     */
     public function testCanGetPreviousRunDates(): void
     {
         $cron = new CronExpression('* * * * *');
@@ -389,9 +356,6 @@ class CronExpressionTest extends TestCase
         $this->assertEquals($next, $cron->getPreviousRunDate($two));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getMultipleRunDates
-     */
     public function testProvidesMultipleRunDates(): void
     {
         $cron = new CronExpression('*/2 * * * *');
@@ -403,10 +367,6 @@ class CronExpressionTest extends TestCase
         ], $cron->getMultipleRunDates(4, '2008-11-09 00:00:00', false, true));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getMultipleRunDates
-     * @covers \Cron\CronExpression::setMaxIterationCount
-     */
     public function testProvidesMultipleRunDatesForTheFarFuture(): void
     {
         // Fails with the default 1000 iteration limit
@@ -425,9 +385,6 @@ class CronExpressionTest extends TestCase
         ], $cron->getMultipleRunDates(9, '2015-04-28 00:00:00', false, true));
     }
 
-    /**
-     * @covers \Cron\CronExpression
-     */
     public function testCanIterateOverNextRuns(): void
     {
         $cron = new CronExpression('@weekly');
@@ -445,9 +402,6 @@ class CronExpressionTest extends TestCase
         $this->assertEquals($nextRun, new DateTime('2008-11-30 00:00:00'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getRunDate
-     */
     public function testGetRunDateHandlesDifferentDates(): void
     {
         $cron = new CronExpression('@weekly');
@@ -463,7 +417,6 @@ class CronExpressionTest extends TestCase
      *
      * Previously the earliest of dates was always returned, which was incorrect for previous run date.
      *
-     * @covers \Cron\CronExpression::getRunDate
      */
     public function testGetRunDateHandlesSimultaneousDayOfMonthAndDayOfWeek(): void
     {
@@ -473,9 +426,6 @@ class CronExpressionTest extends TestCase
         $this->assertEquals(new DateTime("2021-07-14 00:00:00"), $cron->getPreviousRunDate($date));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getRunDate
-     */
     public function testSkipsCurrentDateByDefault(): void
     {
         $cron = new CronExpression('* * * * *');
@@ -485,10 +435,7 @@ class CronExpressionTest extends TestCase
         $this->assertSame($current->format('Y-m-d H:i:00'), $nextPrev->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getRunDate
-     * @ticket 7
-     */
+    #[Ticket("7")]
     public function testStripsForSeconds(): void
     {
         $cron = new CronExpression('* * * * *');
@@ -496,9 +443,6 @@ class CronExpressionTest extends TestCase
         $this->assertSame('2011-09-27 10:11:00', $cron->getNextRunDate($current)->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getRunDate
-     */
     public function testFixesPhpBugInDateIntervalMonth(): void
     {
         $cron = new CronExpression('0 0 27 JAN *');
@@ -535,9 +479,6 @@ class CronExpressionTest extends TestCase
         $this->assertFalse($e->isDue(new DateTime('2014-04-27 00:00:00')));
     }
 
-    /**
-     * @covers \Cron\CronExpression::getRunDate
-     */
     public function testKeepOriginalTime(): void
     {
         $now = new \DateTime();
@@ -547,12 +488,6 @@ class CronExpressionTest extends TestCase
         $this->assertSame($strNow, $now->format(DateTime::ISO8601));
     }
 
-    /**
-     * @covers \Cron\CronExpression::__construct
-     * @covers \Cron\CronExpression::isValidExpression
-     * @covers \Cron\CronExpression::setExpression
-     * @covers \Cron\CronExpression::setPart
-     */
     public function testValidationWorks(): void
     {
         // Invalid. Only four values
