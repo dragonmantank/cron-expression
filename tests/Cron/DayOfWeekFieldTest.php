@@ -8,16 +8,17 @@ use Cron\DayOfWeekField;
 use DateTime;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversFunction;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
+#[CoversFunction('validate')]
+#[CoversFunction('isSatisfiedBy')]
+#[CoversFunction('increment')]
 class DayOfWeekFieldTest extends TestCase
 {
-    /**
-     * @covers \Cron\DayOfWeekField::validate
-     */
     public function testValidatesField(): void
     {
         $f = new DayOfWeekField();
@@ -31,9 +32,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertFalse($f->validate('1.'));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::isSatisfiedBy
-     */
     public function testChecksIfSatisfied(): void
     {
         $f = new DayOfWeekField();
@@ -41,9 +39,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::increment
-     */
     public function testIncrementsDate(): void
     {
         $d = new DateTime('2011-03-15 11:15:00');
@@ -56,9 +51,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertSame('2011-03-14 23:59:00', $d->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::increment
-     */
     public function testIncrementsDateTimeImmutable(): void
     {
         $d = new DateTimeImmutable('2011-03-15 11:15:00');
@@ -67,9 +59,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertSame('2011-03-16 00:00:00', $d->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::isSatisfiedBy
-     */
     public function testValidatesHashValueWeekday(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -78,9 +67,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTime(), '12#1', false));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::isSatisfiedBy
-     */
     public function testValidatesHashValueNth(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -89,9 +75,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTime(), '3#6', false));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::validate
-     */
     public function testValidateWeekendHash(): void
     {
         $f = new DayOfWeekField();
@@ -105,9 +88,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertTrue($f->validate('MON#1,MON#3'));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::isSatisfiedBy
-     */
     public function testHandlesZeroAndSevenDayOfTheWeekValues(): void
     {
         $f = new DayOfWeekField();
@@ -120,9 +100,6 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTime('2014-04-20 00:00:00'), '7#3', false));
     }
 
-    /**
-     * @covers \Cron\DayOfWeekField::isSatisfiedBy
-     */
     public function testHandlesLastWeekdayOfTheMonth(): void
     {
         $f = new DayOfWeekField();

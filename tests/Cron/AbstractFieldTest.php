@@ -8,16 +8,20 @@ use Cron\DayOfWeekField;
 use Cron\HoursField;
 use Cron\MinutesField;
 use Cron\MonthField;
+use PHPUnit\Framework\Attributes\CoversFunction;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
+#[CoversFunction('isRange')]
+#[CoversFunction('isIncrementsOfRanges')]
+#[CoversFunction('isInRange')]
+#[CoversFunction('isInIncrementsOfRanges')]
+#[CoversFunction('isSatisfied')]
 class AbstractFieldTest extends TestCase
 {
-    /**
-     * @covers \Cron\AbstractField::isRange
-     */
+
     public function testTestsIfRange(): void
     {
         $f = new DayOfWeekField();
@@ -25,9 +29,6 @@ class AbstractFieldTest extends TestCase
         $this->assertFalse($f->isRange('2'));
     }
 
-    /**
-     * @covers \Cron\AbstractField::isIncrementsOfRanges
-     */
     public function testTestsIfIncrementsOfRanges(): void
     {
         $f = new DayOfWeekField();
@@ -37,9 +38,6 @@ class AbstractFieldTest extends TestCase
         $this->assertTrue($f->isIncrementsOfRanges('3-12/2'));
     }
 
-    /**
-     * @covers \Cron\AbstractField::isInRange
-     */
     public function testTestsIfInRange(): void
     {
         $f = new DayOfWeekField();
@@ -50,9 +48,6 @@ class AbstractFieldTest extends TestCase
         $this->assertFalse($f->isInRange(13, '4-12'));
     }
 
-    /**
-     * @covers \Cron\AbstractField::isInIncrementsOfRanges
-     */
     public function testTestsIfInIncrementsOfRangesOnZeroStartRange(): void
     {
         $f = new MinutesField();
@@ -74,9 +69,6 @@ class AbstractFieldTest extends TestCase
         $this->assertFalse($f->isInIncrementsOfRanges(34, '4/1'));
     }
 
-    /**
-     * @covers \Cron\AbstractField::isInIncrementsOfRanges
-     */
     public function testTestsIfInIncrementsOfRangesOnOneStartRange(): void
     {
         $f = new MonthField();
@@ -98,9 +90,6 @@ class AbstractFieldTest extends TestCase
         $this->assertFalse($f->isInIncrementsOfRanges(34, '4/1'));
     }
 
-    /**
-     * @covers \Cron\AbstractField::isSatisfied
-     */
     public function testTestsIfSatisfied(): void
     {
         $f = new DayOfWeekField();
