@@ -7,16 +7,17 @@ namespace Cron\Tests;
 use Cron\DayOfMonthField;
 use DateTime;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\CoversFunction;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
+#[CoversFunction('increment')]
+#[CoversFunction('validate')]
+#[CoversFunction('isSatisfiedBy')]
 class DayOfMonthFieldTest extends TestCase
 {
-    /**
-     * @covers \Cron\DayOfMonthField::validate
-     */
     public function testValidatesField(): void
     {
         $f = new DayOfMonthField();
@@ -30,9 +31,6 @@ class DayOfMonthFieldTest extends TestCase
         $this->assertFalse($f->validate('1.'));
     }
 
-    /**
-     * @covers \Cron\DayOfMonthField::isSatisfiedBy
-     */
     public function testChecksIfSatisfied(): void
     {
         $f = new DayOfMonthField();
@@ -40,9 +38,6 @@ class DayOfMonthFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
     }
 
-    /**
-     * @covers \Cron\DayOfMonthField::increment
-     */
     public function testIncrementsDate(): void
     {
         $d = new DateTime('2011-03-15 11:15:00');
@@ -55,9 +50,6 @@ class DayOfMonthFieldTest extends TestCase
         $this->assertSame('2011-03-14 23:59:00', $d->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\DayOfMonthField::increment
-     */
     public function testIncrementsDateTimeImmutable(): void
     {
         $d = new DateTimeImmutable('2011-03-15 11:15:00');
@@ -78,9 +70,6 @@ class DayOfMonthFieldTest extends TestCase
         $this->assertFalse($f->validate('0'));
     }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
     public function testIncrementAcrossDstChangeBerlin(): void
     {
         $tz = new \DateTimeZone("Europe/Berlin");
@@ -95,9 +84,6 @@ class DayOfMonthFieldTest extends TestCase
         $this->assertSame("2021-03-27 23:59:00", $d->format("Y-m-d H:i:s"));
     }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
     public function testIncrementAcrossDstChangeLondon(): void
     {
         $tz = new \DateTimeZone("Europe/London");

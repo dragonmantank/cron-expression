@@ -7,16 +7,18 @@ namespace Cron\Tests;
 use Cron\MinutesField;
 use DateTime;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\CoversFunction;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
+#[CoversFunction('validate')]
+#[CoversFunction('isSatisfiedBy')]
+#[CoversFunction('increment')]
 class MinutesFieldTest extends TestCase
 {
-    /**
-     * @covers \Cron\MinutesField::validate
-     */
+
     public function testValidatesField(): void
     {
         $f = new MinutesField();
@@ -26,9 +28,7 @@ class MinutesFieldTest extends TestCase
         $this->assertFalse($f->validate('1/10'));
     }
 
-    /**
-     * @covers \Cron\MinutesField::isSatisfiedBy
-     */
+
     public function testChecksIfSatisfied(): void
     {
         $f = new MinutesField();
@@ -36,9 +36,6 @@ class MinutesFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
     }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
     public function testIncrementsDate(): void
     {
         $d = new DateTime('2011-03-15 11:15:00');
@@ -50,9 +47,6 @@ class MinutesFieldTest extends TestCase
         $this->assertSame('2011-03-15 11:15:00', $d->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
     public function testIncrementsDateTimeImmutable(): void
     {
         $d = new DateTimeImmutable('2011-03-15 11:15:00');
@@ -90,9 +84,6 @@ class MinutesFieldTest extends TestCase
         $this->assertFalse($f->validate('0/5'));
     }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
     public function testIncrementAcrossDstChangeBerlin(): void
     {
         $tz = new \DateTimeZone("Europe/Berlin");
@@ -107,9 +98,6 @@ class MinutesFieldTest extends TestCase
         $this->assertSame("2021-03-28 01:58:00", $d->format("Y-m-d H:i:s"));
     }
 
-    /**
-     * @covers \Cron\MinutesField::increment
-     */
     public function testIncrementAcrossDstChangeLondon(): void
     {
         $tz = new \DateTimeZone("Europe/London");
