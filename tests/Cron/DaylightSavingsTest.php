@@ -554,4 +554,32 @@ class DaylightSavingsTest extends TestCase
             $this->assertContainsEquals($dtExpected, $actual);
         }
     }
+
+    public function testOffsetIncrementDailyMidnight(): void
+    {
+        $expression = '15 0 * * *';
+        $cron = new CronExpression($expression);
+        $tz = new \DateTimeZone("America/Los_Angeles");
+
+        $expected = [
+            $this->createDateTimeExactly("2024-03-08 00:15-08:00", $tz),
+            $this->createDateTimeExactly("2024-03-09 00:15-08:00", $tz),
+            $this->createDateTimeExactly("2024-03-10 00:15-08:00", $tz),
+            $this->createDateTimeExactly("2024-03-11 00:15-07:00", $tz),
+            $this->createDateTimeExactly("2024-03-12 00:15-07:00", $tz),
+            $this->createDateTimeExactly("2024-03-13 00:15-07:00", $tz),
+        ];
+
+        $dtCurrent = $this->createDateTimeExactly("2024-03-08 00:15-08:00", $tz);
+        $actual = $cron->getMultipleRunDates(6, $dtCurrent, false, true, $tz->getName());
+        foreach ($expected as $dtExpected) {
+            $this->assertContainsEquals($dtExpected, $actual);
+        }
+
+        $dtCurrent = $this->createDateTimeExactly("2024-03-13 00:15-07:00", $tz);
+        $actual = $cron->getMultipleRunDates(6, $dtCurrent, true, true, $tz->getName());
+        foreach ($expected as $dtExpected) {
+            $this->assertContainsEquals($dtExpected, $actual);
+        }
+    }
 }
