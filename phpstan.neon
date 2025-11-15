@@ -7,8 +7,9 @@ parameters:
         - '#Call to an undefined method DateTimeInterface::setTime\(\)#'
         - '#Call to an undefined method DateTimeInterface::setTimezone\(\)#'
         - '#Call to an undefined method DateTimeInterface::sub\(\)#'
+        - '#Method Cron\\CronExpression::getRunDate\(\) should return DateTime but returns DateTimeInterface.#'
 
-    level: 2
+    level: 8
 
     paths:
         - src/
