@@ -131,10 +131,10 @@ abstract class AbstractField implements FieldInterface
     {
         $chunks = array_map('trim', explode('/', $value, 2));
         $range = $chunks[0];
-        $step = $chunks[1] ?? 0;
+        $step = (int) ($chunks[1] ?? 0);
 
         // No step or 0 steps aren't cool
-        if (null === $step || '0' === $step || 0 === $step) {
+        if (0 === $step) {
             return false;
         }
 
@@ -184,7 +184,7 @@ abstract class AbstractField implements FieldInterface
      * @param string $expression The expression to evaluate
      * @param int $max Maximum offset for range
      *
-     * @return array<int, int>
+     * @return list<int|string>
      */
     public function getRangeForExpression(string $expression, int $max): array
     {
@@ -193,7 +193,6 @@ abstract class AbstractField implements FieldInterface
 
         if (false !== strpos($expression, ',')) {
             $ranges = explode(',', $expression);
-            $values = [];
             foreach ($ranges as $range) {
                 $expanded = $this->getRangeForExpression($range, $this->rangeEnd);
                 $values = array_merge($values, $expanded);
@@ -210,18 +209,18 @@ abstract class AbstractField implements FieldInterface
                 $stepSize = 1;
             } else {
                 $range = array_map('trim', explode('/', $expression, 2));
-                $stepSize = $range[1] ?? 0;
+                $stepSize = (int) ($range[1] ?? 0);
                 $range = $range[0];
                 $range = explode('-', $range, 2);
                 $offset = $range[0];
-                $to = $range[1] ?? $max;
+                $to = (int) ($range[1] ?? $max);
             }
-            $offset = '*' === $offset ? $this->rangeStart : $offset;
+            $offset = (int) ('*' === $offset ? $this->rangeStart : $offset);
             if ($stepSize >= $this->rangeEnd) {
-                $values = [$this->fullRange[(int) $stepSize % \count($this->fullRange)]];
+                $values = [$this->fullRange[$stepSize % \count($this->fullRange)]];
             } else {
                 for ($i = $offset; $i <= $to; $i += $stepSize) {
-                    $values[] = (int) $i;
+                    $values[] = $i;
                 }
             }
             sort($values);
