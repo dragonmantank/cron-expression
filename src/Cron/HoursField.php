@@ -171,37 +171,37 @@ class HoursField extends AbstractField
         if (! $invert) {
             if ($originalHour >= $target) {
                 $distance = 24 - $originalHour;
-                $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+                $date = $this->timezoneSafeModify($date, "{$distance} hours");
 
                 $actualDay = (int)$date->format('d');
                 $actualHour = (int)$date->format('H');
                 if (($actualDay !== ($originalDay + 1)) && ($actualHour !== 0)) {
                     $offsetChange = ($previousOffset - $date->getOffset());
-                    $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                    $date = $this->timezoneSafeModify($date, "{$offsetChange} seconds");
                 }
 
                 $originalHour = (int)$date->format('H');
             }
 
             $distance = $target - $originalHour;
-            $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+            $date = $this->timezoneSafeModify($date, "{$distance} hours");
         } else {
             if ($originalHour <= $target) {
                 $distance = ($originalHour + 1);
-                $date = $this->timezoneSafeModify($date, "-" . $distance . " hours");
+                $date = $this->timezoneSafeModify($date, (-$distance) . " hours");
 
                 $actualDay = (int)$date->format('d');
                 $actualHour = (int)$date->format('H');
                 if (($actualDay !== ($originalDay - 1)) && ($actualHour !== 23)) {
                     $offsetChange = ($previousOffset - $date->getOffset());
-                    $date = $this->timezoneSafeModify($date, "+{$offsetChange} seconds");
+                    $date = $this->timezoneSafeModify($date, "{$offsetChange} seconds");
                 }
 
                 $originalHour = (int)$date->format('H');
             }
 
             $distance = $originalHour - $target;
-            $date = $this->timezoneSafeModify($date, "-{$distance} hours");
+            $date = $this->timezoneSafeModify($date, (-$distance) . " hours");
         }
 
         $actualDst = (int)$date->format('I');
