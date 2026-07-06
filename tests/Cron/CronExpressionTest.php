@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Cron\Tests;
 
 use Cron\CronExpression;
+use Cron\DayOfMonthField;
+use Cron\DayOfWeekField;
+use Cron\HoursField;
+use Cron\MinutesField;
 use Cron\MonthField;
 use DateTime;
 use DateTimeImmutable;
@@ -12,7 +16,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
@@ -20,24 +24,24 @@ use PHPUnit\Framework\TestCase;
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
-#[CoversFunction('getNextRunDate')]
-#[CoversClass(\Cron\DayOfMonthField::class)]
-#[CoversClass(\Cron\DayOfWeekField::class)]
-#[CoversClass(\Cron\MinutesField::class)]
-#[CoversClass(\Cron\HoursField::class)]
-#[CoversClass(\Cron\MonthField::class)]
-#[CoversClass(\Cron\CronExpression::class)]
-#[CoversFunction('getRunDate')]
-#[CoversFunction('__construct')]
-#[CoversFunction('getExpression')]
-#[CoversFunction('setExpression')]
-#[CoversFunction('__toString')]
-#[CoversFunction('setPart')]
-#[CoversFunction('isDue')]
-#[CoversFunction('getPreviousRunDate')]
-#[CoversFunction('getMultipleRunDates')]
-#[CoversFunction('setMaxIterationCount')]
-#[CoversFunction('isValidExpression')]
+#[CoversClass(DayOfMonthField::class)]
+#[CoversClass(DayOfWeekField::class)]
+#[CoversClass(MinutesField::class)]
+#[CoversClass(HoursField::class)]
+#[CoversClass(MonthField::class)]
+#[CoversClass(CronExpression::class)]
+#[CoversMethod(CronExpression::class, 'getNextRunDate')]
+#[CoversMethod(CronExpression::class, 'getRunDate')]
+#[CoversMethod(CronExpression::class, '__construct')]
+#[CoversMethod(CronExpression::class, 'getExpression')]
+#[CoversMethod(CronExpression::class, 'setExpression')]
+#[CoversMethod(CronExpression::class, '__toString')]
+#[CoversMethod(CronExpression::class, 'setPart')]
+#[CoversMethod(CronExpression::class, 'isDue')]
+#[CoversMethod(CronExpression::class, 'getPreviousRunDate')]
+#[CoversMethod(CronExpression::class, 'getMultipleRunDates')]
+#[CoversMethod(CronExpression::class, 'setMaxIterationCount')]
+#[CoversMethod(CronExpression::class, 'isValidExpression')]
 class CronExpressionTest extends TestCase
 {
     public function testConstructorRecognizesTemplates(): void

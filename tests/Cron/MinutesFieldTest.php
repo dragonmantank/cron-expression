@@ -7,15 +7,16 @@ namespace Cron\Tests;
 use Cron\MinutesField;
 use DateTime;
 use DateTimeImmutable;
-use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
-#[CoversFunction('validate')]
-#[CoversFunction('isSatisfiedBy')]
-#[CoversFunction('increment')]
+#[CoversClass(MinutesField::class)]
+#[CoversMethod(MinutesField::class, 'increment')]
+#[CoversMethod(MinutesField::class, 'isSatisfiedBy')]
 class MinutesFieldTest extends TestCase
 {
 
