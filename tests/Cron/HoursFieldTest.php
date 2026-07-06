@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cron\Tests;
 
+use Cron\AbstractField;
 use Cron\HoursField;
 use DateTime;
 use DateTimeImmutable;
@@ -16,6 +17,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(HoursField::class)]
 #[CoversMethod(HoursField::class, 'increment')]
+#[CoversMethod(AbstractField::class, 'validate')]
 class HoursFieldTest extends TestCase
 {
 
