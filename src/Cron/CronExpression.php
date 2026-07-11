@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Cron;
 
+use ArgumentCountError;
+use BadMethodCallException;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -24,6 +26,60 @@ use RuntimeException;
  * [1-7|MON-SUN], and an optional year.
  *
  * @see http://en.wikipedia.org/wiki/Cron
+ *
+ * Dynamic methods follow the pattern:
+ * - get{Field}()
+ * - set{Field}()
+ * - every{Field}()
+ * - range{Field}()
+ * - everyInRange{Field}()
+ * - list{Field}()
+ *
+ * Supported fields are Minutes, Hours, DaysOfMonth, Months, and DaysOfWeek.
+ *
+ * @method string getMinutes() Returns the cron minutes field.
+ * @method string getHours() Returns the cron hours field.
+ * @method string getDaysOfMonth() Returns the cron day-of-month field.
+ * @method string getMonths() Returns the cron months field.
+ * @method string getDaysOfWeek() Returns the cron day-of-week field.
+ *
+ * @method self setMinutes(string $value) Sets the cron minutes field.
+ * @method self setHours(string $value) Sets the cron hours field.
+ * @method self setDaysOfMonth(string $value) Sets the cron day-of-month field.
+ * @method self setMonths(string $value) Sets the cron months field.
+ * @method self setDaysOfWeek(string $value) Sets the cron day-of-week field.
+ *
+ * @method self everyMinutes(int $step) Sets an interval step for the minutes field.
+ * @method self everyHours(int $step) Sets an interval step for the hours field.
+ * @method self everyDaysOfMonth(int $step) Sets an interval step for the day-of-month field.
+ * @method self everyMonths(int $step) Sets an interval step for the months field.
+ * @method self everyDaysOfWeek(int $step) Sets an interval step for the day-of-week field.
+ *
+ * @method self rangeMinutes(string|int $start, string|int $end) Sets a range for the minutes field.
+ * @method self rangeHours(string|int $start, string|int $end) Sets a range for the hours field.
+ * @method self rangeDaysOfMonth(string|int $start, string|int $end) Sets a range for the day-of-month field.
+ * @method self rangeMonths(string|int $start, string|int $end) Sets a range for the months field.
+ * @method self rangeDaysOfWeek(string|int $start, string|int $end) Sets a range for the day-of-week field.
+ *
+ * @method self everyInRangeMinutes(string|int $start, string|int $end, int $step) Sets a stepped range for the minutes field.
+ * @method self everyInRangeHours(string|int $start, string|int $end, int $step) Sets a stepped range for the hours field.
+ * @method self everyInRangeDaysOfMonth(string|int $start, string|int $end, int $step) Sets a stepped range for the day-of-month field.
+ * @method self everyInRangeMonths(string|int $start, string|int $end, int $step) Sets a stepped range for the months field.
+ * @method self everyInRangeDaysOfWeek(string|int $start, string|int $end, int $step) Sets a stepped range for the day-of-week field.
+ *
+ * @method self listMinutes(iterable $list) Sets a list of allowed minute values.
+ * @method self listHours(iterable $list) Sets a list of allowed hour values.
+ * @method self listDaysOfMonth(iterable $list) Sets a list of allowed day-of-month values.
+ * @method self listMonths(iterable $list) Sets a list of allowed month values.
+ * @method self listDaysOfWeek(iterable $list) Sets a list of allowed day-of-week values.
+ *
+ * @method static self yearly(?FieldFactoryInterface $fieldFactory = null) Creates a yearly cron expression.
+ * @method static self annually(?FieldFactoryInterface $fieldFactory = null) Creates a yearly cron expression.
+ * @method static self monthly(?FieldFactoryInterface $fieldFactory = null) Creates a monthly cron expression.
+ * @method static self weekly(?FieldFactoryInterface $fieldFactory = null) Creates a weekly cron expression.
+ * @method static self daily(?FieldFactoryInterface $fieldFactory = null) Creates a daily cron expression.
+ * @method static self hourly(?FieldFactoryInterface $fieldFactory = null) Creates an hourly cron expression.
+ * @method static self midnight(?FieldFactoryInterface $fieldFactory = null) Creates a cron expression running at midnight.
  */
 class CronExpression
 {
@@ -188,6 +244,98 @@ class CronExpression
     }
 
     /**
+     * Creates a cron schedule based on CronExpression registered aliases
+     *
+     * @see CronExpression::getAliases()
+     *
+     * The `@` is omitted when calling the method.
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function __callStatic(string $name, array $arguments = []): self
+    {
+        return new self('@'.$name, ...$arguments);
+    }
+
+    /**
+     * Creates a cron schedule that runs every minute.
+     */
+    public static function minutely(?FieldFactoryInterface $fieldFactory = null): self
+    {
+        return new self('* * * * *', $fieldFactory);
+    }
+
+    /**
+     * Creates a cron schedule that runs every day at a specific time.
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function dailyAt(
+        string|int $hour,
+        string|int $minute,
+        ?FieldFactoryInterface $fieldFactory = null,
+    ): self {
+        return self::minutely($fieldFactory)
+            ->setPart(CronExpression::HOUR, (string) $hour)
+            ->setPart(CronExpression::MINUTE, (string) $minute);
+    }
+
+    /**
+     * Creates a cron schedule that runs weekly on a specific weekday and time.
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function weeklyOn(
+        string|int $dayOfWeek,
+        string|int $hour,
+        string|int $minute,
+        ?FieldFactoryInterface $fieldFactory = null,
+    ): self {
+        return self::minutely($fieldFactory)
+            ->setPart(CronExpression::WEEKDAY, (string) $dayOfWeek)
+            ->setPart(CronExpression::HOUR, (string) $hour)
+            ->setPart(CronExpression::MINUTE, (string) $minute);
+    }
+
+    /**
+     * Creates a cron schedule that runs monthly on a specific day and time.
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function monthlyOn(
+        string|int $dayOfMonth,
+        string|int $hour,
+        string|int $minute,
+        ?FieldFactoryInterface $fieldFactory = null,
+    ): self {
+        return self::minutely($fieldFactory)
+            ->setPart(CronExpression::DAY, (string) $dayOfMonth)
+            ->setPart(CronExpression::HOUR, (string) $hour)
+            ->setPart(CronExpression::MINUTE, (string) $minute);
+    }
+
+    /**
+     * Creates a cron schedule that runs yearly on a specific month and day.
+     *
+     * Hour and minute default to midnight.
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function yearlyOn(
+        string|int $month,
+        string|int $dayOfMonth,
+        string|int $hour = 0,
+        string|int $minute = 0,
+        ?FieldFactoryInterface $fieldFactory = null,
+    ): self {
+        return self::minutely($fieldFactory)
+            ->setPart(CronExpression::MONTH, (string) $month)
+            ->setPart(CronExpression::DAY, (string) $dayOfMonth)
+            ->setPart(CronExpression::HOUR, (string) $hour)
+            ->setPart(CronExpression::MINUTE, (string) $minute);
+    }
+
+    /**
      * Set or change the CRON expression.
      *
      * @param string $value CRON expression (e.g. 8 * * * *)
@@ -250,6 +398,133 @@ class CronExpression
         $this->cronParts[$position] = $value;
 
         return $this;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws BadMethodCallException
+     */
+    public function __call(string $name, array $arguments): mixed
+    {
+        // Keep ordered by descending length because prefixes may overlap.
+        static $methodList = [
+            'everyInRange' => 12,
+            'every' => 5,
+            'range' => 5,
+            'list' => 4,
+            'set' => 3,
+            'get' => 3,
+        ];
+        static $positionList = [
+            'DaysOfWeek' => CronExpression::WEEKDAY,
+            'DaysOfMonth' => CronExpression::DAY,
+            'Months' => CronExpression::MONTH,
+            'Hours' => CronExpression::HOUR,
+            'Minutes' => CronExpression::MINUTE,
+        ];
+
+        foreach ($methodList as $method => $length) {
+            if (!str_starts_with($name, $method)) {
+                continue;
+            }
+
+            $position = $positionList[substr($name, $length)] ?? null;
+            if ($position === null) {
+                break;
+            }
+
+            if ($method === 'get') {
+                if (count($arguments) !== 0) {
+                    throw new ArgumentCountError("The method '".static::class."::$name()' expects exactly 0 arguments.");
+                }
+
+                return $this->getExpression($position);
+            }
+
+            if ($method === 'set') {
+                return $this->setPart($position, ...$arguments);
+            }
+
+            $arguments['position'] = $position;
+
+            return $this->$method(...$arguments);
+        }
+
+        throw new BadMethodCallException("The method '".static::class."::$name()' does not exist.");
+    }
+
+    /**
+     * Sets a field to run every N units using cron step syntax
+     *
+     * @throws InvalidArgumentException
+     */
+    public function every(int $step, int $position): self
+    {
+        return $this->setPart($position, $step === 1 ? '*' : "*/$step");
+    }
+
+    /**
+     * Sets a field to a range of values using cron range syntax
+     *
+     * @throws InvalidArgumentException
+     */
+    public function range(string|int $start, string|int $end, int $position): self
+    {
+        return $this->setPart($position, self::validatePrimitive($start)."-".self::validatePrimitive($end));
+    }
+
+    /**
+     * Sets a field to run every N units within a range.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function everyInRange(string|int $start, string|int $end, int $step, int $position): self
+    {
+        $value = self::validatePrimitive($start)."-".self::validatePrimitive($end);
+        if ($step !== 1) {
+            $value .= "/$step";
+        }
+
+        return $this->setPart($position, $value);
+    }
+
+    /**
+     * Sets a field to a list of values using cron list syntax
+     *
+     * @param iterable<string|int> $list
+     *
+     * @throws InvalidArgumentException
+     */
+    public function list(iterable $list, int $position): self
+    {
+        $values = [];
+        foreach ($list as $value) {
+            $values[] = self::validatePrimitive($value);
+        }
+
+        if ($values === []) {
+            throw new InvalidArgumentException("List must be a non empty array.");
+        }
+
+        return $this->setPart($position, implode(',', $values));
+    }
+
+    /**
+     * Validates that the CRON field string value does not contain any separator value (e.g. "/" or ",")
+     *
+     * @throws InvalidArgumentException
+     */
+    protected static function validatePrimitive(string|int $value): string
+    {
+        if (is_int($value)) {
+            return (string) $value;
+        }
+
+        if (strpbrk($value, '/,' ) !== false) {
+            throw new InvalidArgumentException("Cron primitive '$value' must not contain expression operators '/' or ','.");
+        }
+
+        return $value;
     }
 
     /**
