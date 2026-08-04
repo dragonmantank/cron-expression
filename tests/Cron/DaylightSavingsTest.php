@@ -83,6 +83,17 @@ class DaylightSavingsTest extends TestCase
         $this->assertEquals($dtExpected, $cron->getNextRunDate($dtCurrent, 0, false, $tz->getName()));
     }
 
+    public function testNextMidnightIsNotSkippedAcrossSpringDstTransition(): void
+    {
+        $tz = new \DateTimeZone("Europe/Prague");
+        $cron = new CronExpression("0 0 * * *");
+
+        $dtCurrent = $this->createDateTimeExactly("2026-03-29 00:30+01:00", $tz);
+        $dtExpected = $this->createDateTimeExactly("2026-03-30 00:00+02:00", $tz);
+
+        $this->assertEquals($dtExpected, $cron->getNextRunDate($dtCurrent, 0, false, $tz->getName()));
+    }
+
     public function testOffsetIncrementsPreviousRunDate(): void
     {
         $tz = new \DateTimeZone("Europe/London");
