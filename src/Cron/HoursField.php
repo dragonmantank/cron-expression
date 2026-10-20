@@ -184,7 +184,7 @@ class HoursField extends AbstractField
             }
 
             $distance = $target - $originalHour;
-            $date = $this->timezoneSafeModify($date, "+{$distance} hours");
+            $date = $this->timezoneSafeModify($date, "{$distance} hours");
         } else {
             if ($originalHour <= $target) {
                 $distance = ($originalHour + 1);
