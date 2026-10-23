@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Cron\Tests;
 
+use Cron\AbstractField;
 use Cron\MonthField;
 use DateTime;
 use DateTimeImmutable;
-use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
-#[CoversFunction('isSatisfiedBy')]
-#[CoversFunction('validate')]
-#[CoversFunction('increment')]
+#[CoversClass(MonthField::class)]
+#[CoversMethod(MonthField::class, 'increment')]
+#[CoversMethod(MonthField::class, 'isSatisfiedBy')]
+#[CoversMethod(AbstractField::class, 'validate')]
 class MonthFieldTest extends TestCase
 {
     public function testValidatesField(): void

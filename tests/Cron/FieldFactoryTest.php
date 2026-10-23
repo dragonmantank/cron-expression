@@ -6,13 +6,15 @@ namespace Cron\Tests;
 
 use Cron\FieldFactory;
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
-#[CoversFunction('getField')]
+#[CoversClass(FieldFactory::class)]
+#[CoversMethod(FieldFactory::class, 'getField')]
 class FieldFactoryTest extends TestCase
 {
     public function testRetrievesFieldInstances(): void

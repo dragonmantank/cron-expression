@@ -8,15 +8,15 @@ use Cron\DayOfWeekField;
 use DateTime;
 use DateTimeImmutable;
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
-#[CoversFunction('validate')]
-#[CoversFunction('isSatisfiedBy')]
-#[CoversFunction('increment')]
+#[CoversMethod(DayOfWeekField::class, 'validate')]
+#[CoversMethod(DayOfWeekField::class, 'isSatisfiedBy')]
+#[CoversMethod(DayOfWeekField::class, 'increment')]
 class DayOfWeekFieldTest extends TestCase
 {
     public function testValidatesField(): void

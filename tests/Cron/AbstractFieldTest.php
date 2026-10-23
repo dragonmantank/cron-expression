@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace Cron\Tests;
 
+use Cron\AbstractField;
 use Cron\DayOfWeekField;
 use Cron\HoursField;
 use Cron\MinutesField;
 use Cron\MonthField;
-use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Dowling <mtdowling@gmail.com>
  */
-#[CoversFunction('isRange')]
-#[CoversFunction('isIncrementsOfRanges')]
-#[CoversFunction('isInRange')]
-#[CoversFunction('isInIncrementsOfRanges')]
-#[CoversFunction('isSatisfied')]
+#[CoversClass(AbstractField::class)]
+#[CoversMethod(AbstractField::class, 'isRange')]
+#[CoversMethod(AbstractField::class, 'isIncrementsOfRanges')]
+#[CoversMethod(AbstractField::class, 'isInRange')]
+#[CoversMethod(AbstractField::class, 'isInIncrementsOfRanges')]
+#[CoversMethod(AbstractField::class, 'isSatisfied')]
 class AbstractFieldTest extends TestCase
 {
 
