@@ -107,4 +107,54 @@ class DayOfMonthFieldTest extends TestCase
         $f = new DayOfMonthField();
         $this->assertTrue($f->validate('LW'));
     }
+
+    /**
+     * 'L' (last day of the month) is a valid member of a day-of-month list,
+     * e.g. "L,15". Only 'W' is restricted to a single day and must stay
+     * invalid inside a list.
+     *
+     * @see https://github.com/dragonmantank/cron-expression/issues/189
+     */
+    public function testIssue189ListMayContainLastDayOfMonth(): void
+    {
+        $f = new DayOfMonthField();
+
+        // 'L' is allowed as a list member.
+        $this->assertTrue($f->validate('L,15'));
+        $this->assertTrue($f->validate('15,L'));
+        $this->assertTrue($f->validate('L,1-5'));
+        $this->assertTrue($f->validate('L,15,20'));
+
+        // 'W' remains single-day only and must stay invalid inside a list.
+        $this->assertFalse($f->validate('5W,L'));
+        $this->assertFalse($f->validate('5W,15'));
+        $this->assertFalse($f->validate('15,5W'));
+    }
+
+    /**
+     * An "L,15" day-of-month list must schedule on both the 15th and the last
+     * day of each month (including February in leap and non-leap years).
+     *
+     * @see https://github.com/dragonmantank/cron-expression/issues/189
+     */
+    public function testIssue189ListWithLastDayOfMonthSchedules(): void
+    {
+        $cron = new \Cron\CronExpression('0 0 L,15 * *');
+
+        $expected = [
+            '2024-01-15 00:00:00',
+            '2024-01-31 00:00:00',
+            '2024-02-15 00:00:00',
+            '2024-02-29 00:00:00', // leap year
+            '2024-03-15 00:00:00',
+            '2024-03-31 00:00:00',
+        ];
+
+        $current = new DateTimeImmutable('2024-01-01 00:00:00');
+        foreach ($expected as $expectedRun) {
+            $current = $cron->getNextRunDate($current, 0, false);
+            $this->assertSame($expectedRun, $current->format('Y-m-d H:i:s'));
+            $current = $current->modify('+1 second');
+        }
+    }
 }

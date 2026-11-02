@@ -138,8 +138,10 @@ class DayOfMonthField extends AbstractField
     {
         $basicChecks = parent::validate($value);
 
-        // Validate that a list don't have W or L
-        if (false !== strpos($value, ',') && (false !== strpos($value, 'W') || false !== strpos($value, 'L'))) {
+        // 'W' may only qualify a single day, never a member of a list (see the
+        // class docblock). 'L' (last day of the month), by contrast, is a valid
+        // list member, e.g. "L,15" meaning "the last day or the 15th".
+        if (false !== strpos($value, ',') && false !== strpos($value, 'W')) {
             return false;
         }
 
