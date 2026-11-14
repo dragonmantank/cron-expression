@@ -203,6 +203,8 @@ class CronExpressionTest extends TestCase
             ['1-4,6-9,11-14 * * * *', strtotime('2021-08-25 10:05:00'), strtotime('2021-08-25 10:06:00'), false],
             ['0 9,13,6 * * *', strtotime('2021-08-25 05:30:00'), strtotime('2021-08-25 06:00:00'), false],
             ['0 10-12,6-8 * * *', strtotime('2021-08-25 05:30:00'), strtotime('2021-08-25 06:00:00'), false],
+            // A step sorts before a plain number as a string ("*/15" < "5")
+            ['*/15,5 * * * *', strtotime('2021-08-25 10:01:00'), strtotime('2021-08-25 10:05:00'), false],
         ];
     }
 
