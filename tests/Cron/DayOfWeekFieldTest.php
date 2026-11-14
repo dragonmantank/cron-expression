@@ -109,6 +109,36 @@ class DayOfWeekFieldTest extends TestCase
         $this->assertFalse($f->isSatisfiedBy(new DateTime('2018-12-21 00:00:00'), '5L', false));
     }
 
+    public function testNamedRangesIncludeSunday(): void
+    {
+        $f = new DayOfWeekField();
+        $saturday = new DateTime('2024-01-06 00:00:00');
+        $sunday = new DateTime('2024-01-07 00:00:00');
+        $monday = new DateTime('2024-01-08 00:00:00');
+        $wednesday = new DateTime('2024-01-10 00:00:00');
+        $friday = new DateTime('2024-01-12 00:00:00');
+
+        // SUN is stored as 7, so these ranges used to lose Sunday or match nothing
+        $this->assertTrue($f->isSatisfiedBy($saturday, 'SAT-SUN', false));
+        $this->assertTrue($f->isSatisfiedBy($sunday, 'SAT-SUN', false));
+        $this->assertFalse($f->isSatisfiedBy($monday, 'SAT-SUN', false));
+        $this->assertTrue($f->isSatisfiedBy($sunday, 'FRI-SUN', false));
+        $this->assertTrue($f->isSatisfiedBy($sunday, 'SUN-THU', false));
+        $this->assertTrue($f->isSatisfiedBy($wednesday, 'sun-thu', false));
+        $this->assertFalse($f->isSatisfiedBy($friday, 'SUN-THU', false));
+
+        // Named ranges with a step used to be read as 0-0
+        $this->assertTrue($f->isSatisfiedBy($monday, 'MON-FRI/2', false));
+        $this->assertTrue($f->isSatisfiedBy($wednesday, 'MON-FRI/2', false));
+        $this->assertFalse($f->isSatisfiedBy($sunday, 'MON-FRI/2', false));
+
+        // 0 and 7 both mean Sunday, also inside ranges and steps
+        $this->assertTrue($f->isSatisfiedBy($sunday, '0-7/2', false));
+        $this->assertTrue($f->isSatisfiedBy($sunday, '0-0', false));
+        $this->assertFalse($f->isSatisfiedBy($monday, '0-0', false));
+        $this->assertFalse($f->isSatisfiedBy($monday, '7-7', false));
+    }
+
     /**
      * @see https://github.com/mtdowling/cron-expression/issues/47
      */

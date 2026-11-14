@@ -100,4 +100,12 @@ class MonthFieldTest extends TestCase
         $this->assertTrue($f->validate('Jan'));
         $this->assertTrue($f->validate('jan'));
     }
+
+    public function testNamedRangeWithStep(): void
+    {
+        $f = new MonthField();
+        $this->assertTrue($f->isSatisfiedBy(new DateTime('2024-01-15'), 'JAN-MAR/2', false));
+        $this->assertFalse($f->isSatisfiedBy(new DateTime('2024-02-15'), 'JAN-MAR/2', false));
+        $this->assertTrue($f->isSatisfiedBy(new DateTime('2024-03-15'), 'JAN-MAR/2', false));
+    }
 }

@@ -771,4 +771,34 @@ class CronExpressionTest extends TestCase
         $this->assertTrue($cron->isDue(new \DateTimeImmutable('2023-08-31 10:00:00')));
         $this->assertFalse($cron->isDue(new \DateTimeImmutable('2023-08-30 10:00:00')));
     }
+
+    public function testNamedDayOfWeekRangesThatEndOrStartOnSunday(): void
+    {
+        $start = new DateTimeImmutable('2024-01-05 12:00:00', new DateTimeZone('UTC'));
+        $format = function (array $dates): array {
+            return array_map(function (DateTime $date) {
+                return $date->format('D Y-m-d');
+            }, $dates);
+        };
+
+        $cron = new CronExpression('0 10 * * SAT-SUN');
+        $this->assertSame(
+            ['Sat 2024-01-06', 'Sun 2024-01-07', 'Sat 2024-01-13', 'Sun 2024-01-14'],
+            $format($cron->getMultipleRunDates(4, $start))
+        );
+
+        $cron = new CronExpression('0 10 * * SUN-THU');
+        $this->assertSame(
+            ['Sun 2024-01-07', 'Mon 2024-01-08', 'Tue 2024-01-09', 'Wed 2024-01-10', 'Thu 2024-01-11', 'Sun 2024-01-14'],
+            $format($cron->getMultipleRunDates(6, $start))
+        );
+
+        $cron = new CronExpression('0 10 * * MON-FRI/2');
+        $this->assertSame(
+            ['Mon 2024-01-08', 'Wed 2024-01-10', 'Fri 2024-01-12'],
+            $format($cron->getMultipleRunDates(3, $start))
+        );
+
+        $this->assertTrue((new CronExpression('0 10 * * SAT-SUN'))->isDue('2024-01-07 10:00:00', 'UTC'));
+    }
 }
