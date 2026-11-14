@@ -125,23 +125,46 @@ class DayOfWeekField extends AbstractField
         }
 
         // Handle day of the week values
-        if (false !== strpos($value, '-')) {
-            $parts = explode('-', $value);
-            if ('7' === $parts[0]) {
-                $parts[0] = 0;
-            } elseif ('0' === $parts[1]) {
-                $parts[1] = 7;
-            }
-            $value = implode('-', $parts);
+        $value = $this->normalizeRange($value);
+
+        // 0 and 7 are both Sunday, so a Sunday matches if the value covers either of them
+        $fieldValue = (int) $date->format('w');
+        if ($this->isSatisfied($fieldValue, $value)) {
+            return true;
         }
 
-        // Test to see which Sunday to use -- 0 == 7 == Sunday
-        $format = \in_array(7, array_map(function ($value) {
-            return (int) $value;
-        }, str_split($value)), true) ? 'N' : 'w';
-        $fieldValue = (int) $date->format($format);
+        return 0 === $fieldValue && $this->isSatisfied(7, $value);
+    }
 
-        return $this->isSatisfied($fieldValue, $value);
+    /**
+     * Convert the bounds of a range (e.g. "FRI-SUN" or "MON-FRI/2") to numbers.
+     *
+     * Sunday is both 0 and 7, and SUN is stored as 7. A range that would run
+     * backwards because of that is read with Sunday at the matching end, so
+     * "SUN-THU" is 0-4 and "5-0" is 5-7.
+     */
+    private function normalizeRange(string $value): string
+    {
+        $chunks = explode('/', $value, 2);
+        if (false === strpos($chunks[0], '-')) {
+            return $value;
+        }
+
+        [$start, $end] = array_map(function ($part) {
+            return (int) $this->convertLiterals(trim($part));
+        }, explode('-', $chunks[0], 2));
+
+        if ($start > $end) {
+            if (7 === $start) {
+                $start = 0;
+            } elseif (0 === $end) {
+                $end = 7;
+            }
+        }
+
+        $chunks[0] = $start . '-' . $end;
+
+        return implode('/', $chunks);
     }
 
     /**
