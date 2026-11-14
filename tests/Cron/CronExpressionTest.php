@@ -199,7 +199,23 @@ class CronExpressionTest extends TestCase
             ['0-59/59 10 * * *', strtotime('2021-08-25 10:01:00'), strtotime('2021-08-25 10:59:00'), false],
             ['0-59/65 10 * * *', strtotime('2021-08-25 10:01:00'), strtotime('2021-08-25 10:05:00'), false],
             ['41-59/24 5 * * *', strtotime('2021-08-25 10:00:00'), strtotime('2021-08-26 05:41:00'), false],
+            // Lists whose parts are not in numeric order (as strings "11-14" < "6-9", "10-12" < "6-8")
+            ['1-4,6-9,11-14 * * * *', strtotime('2021-08-25 10:05:00'), strtotime('2021-08-25 10:06:00'), false],
+            ['0 9,13,6 * * *', strtotime('2021-08-25 05:30:00'), strtotime('2021-08-25 06:00:00'), false],
+            ['0 10-12,6-8 * * *', strtotime('2021-08-25 05:30:00'), strtotime('2021-08-25 06:00:00'), false],
+            // A step sorts before a plain number as a string ("*/15" < "5")
+            ['*/15,5 * * * *', strtotime('2021-08-25 10:01:00'), strtotime('2021-08-25 10:05:00'), false],
         ];
+    }
+
+    public function testListOutOfNumericOrderInBothDirections(): void
+    {
+        $cron = new CronExpression('1-4,6-9,11-14 * * * *');
+        $this->assertSame('2021-08-25 10:06:00', $cron->getNextRunDate('2021-08-25 10:05:00')->format('Y-m-d H:i:s'));
+        $this->assertSame('2021-08-25 10:09:00', $cron->getPreviousRunDate('2021-08-25 10:11:00')->format('Y-m-d H:i:s'));
+
+        $cron = new CronExpression('0 10-12,6-8 * * *');
+        $this->assertSame('2021-08-25 08:00:00', $cron->getPreviousRunDate('2021-08-25 09:30:00')->format('Y-m-d H:i:s'));
     }
 
     /**

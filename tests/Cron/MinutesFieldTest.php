@@ -47,6 +47,29 @@ class MinutesFieldTest extends TestCase
         $this->assertSame('2011-03-15 11:15:00', $d->format('Y-m-d H:i:s'));
     }
 
+    public function testIncrementsDateWithListOutOfNumericOrder(): void
+    {
+        $f = new MinutesField();
+
+        // As strings, "11-14" sorts before "6-9"
+        $d = new DateTime('2011-03-15 11:04:00');
+        $f->increment($d, false, '1-4,6-9,11-14');
+        $this->assertSame('2011-03-15 11:06:00', $d->format('Y-m-d H:i:s'));
+
+        $d = new DateTime('2011-03-15 11:11:00');
+        $f->increment($d, true, '1-4,6-9,11-14');
+        $this->assertSame('2011-03-15 11:09:00', $d->format('Y-m-d H:i:s'));
+
+        $d = new DateTime('2011-03-15 11:20:00');
+        $f->increment($d, false, '50-52,5-7,30');
+        $this->assertSame('2011-03-15 11:30:00', $d->format('Y-m-d H:i:s'));
+
+        // Overlapping parts
+        $d = new DateTime('2011-03-15 11:07:00');
+        $f->increment($d, false, '5-10,8,1-3');
+        $this->assertSame('2011-03-15 11:08:00', $d->format('Y-m-d H:i:s'));
+    }
+
     public function testIncrementsDateTimeImmutable(): void
     {
         $d = new DateTimeImmutable('2011-03-15 11:15:00');

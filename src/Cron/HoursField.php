@@ -146,6 +146,10 @@ class HoursField extends AbstractField
         foreach ($parts as $part) {
             $hours = array_merge($hours, $this->getRangeForExpression($part, 23));
         }
+        // The search below needs the hours in ascending order, whatever the order of the parts of the list
+        // ("9,13,6", "10-12,6-8").
+        $hours = array_values(array_unique(array_map('intval', $hours)));
+        sort($hours);
 
         $current_hour = (int) $date->format('H');
         $position = $invert ? \count($hours) - 1 : 0;

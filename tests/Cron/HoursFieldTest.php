@@ -41,6 +41,24 @@ class HoursFieldTest extends TestCase
         $this->assertSame('2011-03-15 10:59:00', $d->format('Y-m-d H:i:s'));
     }
 
+    public function testIncrementsDateWithListOutOfNumericOrder(): void
+    {
+        $f = new HoursField();
+
+        $d = new DateTime('2011-03-15 05:30:00');
+        $f->increment($d, false, '9,13,6');
+        $this->assertSame('2011-03-15 06:00:00', $d->format('Y-m-d H:i:s'));
+
+        // As strings, "10-12" sorts before "6-8"
+        $d = new DateTime('2011-03-15 05:30:00');
+        $f->increment($d, false, '10-12,6-8');
+        $this->assertSame('2011-03-15 06:00:00', $d->format('Y-m-d H:i:s'));
+
+        $d = new DateTime('2011-03-15 11:15:00');
+        $f->increment($d, true, '13,6-8,10');
+        $this->assertSame('2011-03-15 10:59:00', $d->format('Y-m-d H:i:s'));
+    }
+
     public function testIncrementsDateTimeImmutable(): void
     {
         $d = new DateTimeImmutable('2011-03-15 11:15:00');

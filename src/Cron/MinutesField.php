@@ -49,11 +49,14 @@ class MinutesField extends AbstractField
         $current_minute = (int) $date->format('i');
 
         $parts = false !== strpos($parts, ',') ? explode(',', $parts) : [$parts];
-        sort($parts);
         $minutes = [];
         foreach ($parts as $part) {
             $minutes = array_merge($minutes, $this->getRangeForExpression($part, 59));
         }
+        // The search below needs the minutes in ascending order. Sorting the parts of the list is not
+        // enough: as strings, "11-14" comes before "6-9", and overlapping parts would repeat minutes.
+        $minutes = array_values(array_unique(array_map('intval', $minutes)));
+        sort($minutes);
 
         $position = $invert ? \count($minutes) - 1 : 0;
         if (\count($minutes) > 1) {
