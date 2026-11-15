@@ -38,6 +38,36 @@ class DayOfMonthFieldTest extends TestCase
         $this->assertTrue($f->isSatisfiedBy(new DateTimeImmutable(), '?', false));
     }
 
+    public function testNearestWeekdayDoesNotMatchMissingDays(): void
+    {
+        $f = new DayOfMonthField();
+
+        foreach (['2023-02', '2024-02', '2023-04', '2023-06'] as $month) {
+            $first = new DateTime($month . '-01', new \DateTimeZone('UTC'));
+            $lastDay = (int) $first->format('t');
+
+            for ($targetDay = $lastDay + 1; $targetDay <= 31; ++$targetDay) {
+                for ($day = 1; $day <= $lastDay; ++$day) {
+                    $date = (clone $first)->setDate((int) $first->format('Y'), (int) $first->format('m'), $day);
+                    $this->assertFalse(
+                        $f->isSatisfiedBy($date, $targetDay . 'W', false),
+                        $targetDay . 'W must not match ' . $date->format('Y-m-d')
+                    );
+                }
+            }
+        }
+    }
+
+    public function testNearestWeekdayStillMatchesExistingDays(): void
+    {
+        $f = new DayOfMonthField();
+
+        $this->assertTrue($f->isSatisfiedBy(new DateTime('2024-02-29'), '29W', false));
+        $this->assertTrue($f->isSatisfiedBy(new DateTime('2023-04-28'), '30W', false));
+        $this->assertTrue($f->isSatisfiedBy(new DateTime('2024-03-29'), '31W', false));
+        $this->assertTrue($f->isSatisfiedBy(new DateTime('2023-05-31'), '31W', false));
+    }
+
     public function testIncrementsDate(): void
     {
         $d = new DateTime('2011-03-15 11:15:00');

@@ -96,6 +96,29 @@ class CronExpressionTest extends TestCase
         ];
     }
 
+    public function testNearestWeekdaySkipsMonthsWithoutTheTargetDay(): void
+    {
+        $cron = new CronExpression('0 9 31W * *');
+
+        $this->assertFalse($cron->isDue('2023-04-01 09:00:00', 'UTC'));
+        $this->assertSame(
+            '2023-05-31 09:00:00',
+            $cron->getNextRunDate('2023-04-01 00:00:00', 0, false, 'UTC')->format('Y-m-d H:i:s')
+        );
+        $this->assertSame(
+            '2023-03-31 09:00:00',
+            $cron->getPreviousRunDate('2023-04-02 00:00:00', 0, false, 'UTC')->format('Y-m-d H:i:s')
+        );
+
+        $dates = $cron->getMultipleRunDates(4, '2023-01-01 00:00:00', false, false, 'UTC');
+        $this->assertSame(
+            ['2023-01-31', '2023-03-31', '2023-05-31', '2023-07-31'],
+            array_map(static function (DateTime $date): string {
+                return $date->format('Y-m-d');
+            }, $dates)
+        );
+    }
+
     public function testInvalidCronsWillFail(): void
     {
         $this->expectException(InvalidArgumentException::class);
