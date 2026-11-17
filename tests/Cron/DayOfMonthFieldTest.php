@@ -107,4 +107,75 @@ class DayOfMonthFieldTest extends TestCase
         $f = new DayOfMonthField();
         $this->assertTrue($f->validate('LW'));
     }
+
+    /**
+     * A 'W' qualifier may be used on the members of a day-of-month list,
+     * e.g. "1W,15W" meaning "the weekday nearest the 1st or the 15th".
+     *
+     * @see https://github.com/dragonmantank/cron-expression/issues/215
+     */
+    public function testIssue215ListMayContainWeekdayQualifiers(): void
+    {
+        $f = new DayOfMonthField();
+
+        $this->assertTrue($f->validate('1W,15W'));
+        $this->assertTrue($f->validate('15W,1W'));
+        $this->assertTrue($f->validate('1W,15'));
+        $this->assertTrue($f->validate('15,1W'));
+        $this->assertTrue($f->validate('1W,15W,25W'));
+        $this->assertTrue($f->validate('01W,15W'));
+        $this->assertTrue($f->validate('1-5,15W'));
+        $this->assertTrue($f->validate('1W,?')); // Preserve the existing skip marker in lists.
+    }
+
+    /**
+     * Only a single numeric day may carry the 'W' qualifier inside a list, and
+     * 'L' keeps its existing list behaviour.
+     *
+     * @see https://github.com/dragonmantank/cron-expression/issues/215
+     */
+    public function testIssue215InvalidWeekdayListsAreRejected(): void
+    {
+        $f = new DayOfMonthField();
+
+        $this->assertFalse($f->validate('0W,15W'));
+        $this->assertFalse($f->validate('32W,15W'));
+        $this->assertFalse($f->validate('W,15W'));
+        $this->assertFalse($f->validate('1W,'));
+        $this->assertFalse($f->validate('1-5W,10W'));
+        $this->assertFalse($f->validate('*/2W,10W'));
+        $this->assertFalse($f->validate('1WW,10W'));
+
+        $this->assertFalse($f->validate('5W,L'));
+        $this->assertFalse($f->validate('1W,LW'));
+        $this->assertFalse($f->validate('L,15'));
+    }
+
+    /**
+     * Every 'W' member of a list is matched independently of its position.
+     *
+     * @see https://github.com/dragonmantank/cron-expression/issues/215
+     */
+    public function testIssue215ListOrderDoesNotAffectMatching(): void
+    {
+        $f = new DayOfMonthField();
+
+        // 2026-11-01 is a Sunday, so 1W falls on Monday the 2nd.
+        $first = new DateTimeImmutable('2026-11-02 00:00:00');
+        // 2026-11-15 is a Sunday, so 15W falls on Monday the 16th.
+        $second = new DateTimeImmutable('2026-11-16 00:00:00');
+        $neither = new DateTimeImmutable('2026-11-10 00:00:00');
+
+        foreach (['1-5,15W', '15W,1-5'] as $value) {
+            $this->assertTrue($f->isSatisfiedBy($first, $value, false));
+            $this->assertTrue($f->isSatisfiedBy($second, $value, false));
+            $this->assertFalse($f->isSatisfiedBy($neither, $value, false));
+        }
+
+        foreach (['1W,15W', '15W,1W'] as $value) {
+            $this->assertTrue($f->isSatisfiedBy($first, $value, false));
+            $this->assertTrue($f->isSatisfiedBy($second, $value, false));
+            $this->assertFalse($f->isSatisfiedBy($neither, $value, false));
+        }
+    }
 }
