@@ -771,4 +771,65 @@ class CronExpressionTest extends TestCase
         $this->assertTrue($cron->isDue(new \DateTimeImmutable('2023-08-31 10:00:00')));
         $this->assertFalse($cron->isDue(new \DateTimeImmutable('2023-08-30 10:00:00')));
     }
+
+    /**
+     * @see https://github.com/dragonmantank/cron-expression/issues/215
+     */
+    public function testIssue215ExpressionSupportsWeekdayLists(): void
+    {
+        // November 2026: 1st is Sunday (1W -> Mon Nov 2), 15th is Sunday (15W -> Mon Nov 16).
+        // December 2026: 1st is Tuesday (1W -> Tue Dec 1), 15th is Tuesday (15W -> Tue Dec 15).
+        // October 2026: 15th is Thursday (15W -> Thu Oct 15).
+        foreach (['0 9 1W,15W * *', '0 9 15W,1W * *'] as $expression) {
+            $cron = new CronExpression($expression);
+
+            $this->assertTrue($cron->isDue(new DateTimeImmutable('2026-11-02 09:00:00')));
+            $this->assertTrue($cron->isDue(new DateTimeImmutable('2026-11-16 09:00:00')));
+            $this->assertFalse($cron->isDue(new DateTimeImmutable('2026-11-01 09:00:00')));
+            $this->assertFalse($cron->isDue(new DateTimeImmutable('2026-11-15 09:00:00')));
+
+            $this->assertSame(
+                '2026-11-02 09:00:00',
+                $cron->getNextRunDate('2026-11-01 00:00:00')->format('Y-m-d H:i:s')
+            );
+            $this->assertSame(
+                '2026-11-16 09:00:00',
+                $cron->getNextRunDate('2026-11-02 09:01:00')->format('Y-m-d H:i:s')
+            );
+            $this->assertSame(
+                '2026-12-01 09:00:00',
+                $cron->getNextRunDate('2026-11-16 09:01:00')->format('Y-m-d H:i:s')
+            );
+            $this->assertSame(
+                '2026-10-15 09:00:00',
+                $cron->getPreviousRunDate('2026-11-01 00:00:00')->format('Y-m-d H:i:s')
+            );
+            $this->assertSame(
+                '2026-11-02 09:00:00',
+                $cron->getPreviousRunDate('2026-11-15 00:00:00')->format('Y-m-d H:i:s')
+            );
+        }
+
+        // Mixed list combining weekday qualifier, plain day, and Saturday->Friday adjustment (Jan 2027: 1st Fri, 16th Sat->Fri 15th)
+        $mixed = new CronExpression('0 9 1,16W * *');
+        $this->assertSame(
+            '2027-01-01 09:00:00',
+            $mixed->getNextRunDate('2026-12-31 12:00:00')->format('Y-m-d H:i:s')
+        );
+        $this->assertSame(
+            '2027-01-15 09:00:00',
+            $mixed->getNextRunDate('2027-01-01 09:01:00')->format('Y-m-d H:i:s')
+        );
+    }
+
+    /**
+     * @see https://github.com/dragonmantank/cron-expression/issues/215
+     */
+    public function testIssue215InvalidWeekdayListExpressions(): void
+    {
+        $this->assertFalse(CronExpression::isValidExpression('0 9 0W,15W * *'));
+        $this->assertFalse(CronExpression::isValidExpression('0 9 32W,15W * *'));
+        $this->assertFalse(CronExpression::isValidExpression('0 9 5W,L * *'));
+        $this->assertFalse(CronExpression::isValidExpression('0 9 1-5W,15W * *'));
+    }
 }

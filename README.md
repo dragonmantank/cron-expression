@@ -101,6 +101,8 @@ Day of month extra features:
 	- However, if you specify `1W` as the value for day-of-month,
 	  and the 1st is a Saturday, the trigger will fire on Monday the 3rd,
 	  as it will not 'jump' over the boundary of a month's days.
+	- Multiple nearest weekdays can be listed, e.g. `0 9 1W,15W * *` runs at 09:00 on the weekdays nearest the 1st and 15th.
+	- Each `W` must qualify a single numeric day, not a range or step. Lists may mix these with ordinary days or ranges, e.g. `0 9 1-5,15W * *`.
 - last day of the month
 	- e.g. `* * L * *` - At every minute on a last day-of-month.
 - last weekday of the month

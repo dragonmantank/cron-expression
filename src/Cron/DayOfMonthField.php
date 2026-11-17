@@ -20,8 +20,8 @@ use DateTimeInterface;
  * the 15th is a Tuesday, then it will fire on Tuesday the 15th. However if you
  * specify "1W" as the value for day-of-month, and the 1st is a Saturday, the
  * trigger will fire on Monday the 3rd, as it will not 'jump' over the boundary
- * of a month's days. The 'W' character can only be specified when the
- * day-of-month is a single day, not a range or list of days.
+ * of a month's days. The 'W' character can only be specified for a single
+ * numeric day (or each single-day item in a list of days), not a range.
  *
  * @author Michael Dowling <mtdowling@gmail.com>
  */
@@ -81,6 +81,16 @@ class DayOfMonthField extends AbstractField
      */
     public function isSatisfiedBy(DateTimeInterface $date, $value, bool $invert): bool
     {
+        if (false !== strpos($value, ',')) {
+            foreach (array_map('trim', explode(',', $value)) as $listItem) {
+                if ($this->isSatisfiedBy($date, $listItem, $invert)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // ? states that the field value is to be skipped
         if ('?' === $value) {
             return true;
@@ -136,12 +146,22 @@ class DayOfMonthField extends AbstractField
      */
     public function validate(string $value): bool
     {
-        $basicChecks = parent::validate($value);
-
-        // Validate that a list don't have W or L
-        if (false !== strpos($value, ',') && (false !== strpos($value, 'W') || false !== strpos($value, 'L'))) {
+        // Validate that a list don't have L
+        if (false !== strpos($value, ',') && false !== strpos($value, 'L')) {
             return false;
         }
+
+        if (false !== strpos($value, ',') && false !== strpos($value, 'W')) {
+            foreach (explode(',', $value) as $listItem) {
+                if (!$this->validateListItem(trim($listItem))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        $basicChecks = parent::validate($value);
 
         if (!$basicChecks) {
             if ('?' === $value) {
@@ -160,5 +180,18 @@ class DayOfMonthField extends AbstractField
         }
 
         return $basicChecks;
+    }
+
+    private function validateListItem(string $value): bool
+    {
+        if (preg_match('/^([0-9]+)W$/', $value, $matches)) {
+            return parent::validate($matches[1]);
+        }
+
+        if (false !== strpos($value, 'W')) {
+            return false;
+        }
+
+        return parent::validate($value) || '?' === $value;
     }
 }
